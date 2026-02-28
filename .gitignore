@@ -1,0 +1,14 @@
+# Downloaded textbooks (CC-licensed, not redistributed)
+textbooks/
+
+# Generated files (built from textbook content)
+lesson_data.json
+index.html
+
+# Old distributable file (replaced by CLAUDE.md)
+CLAUDE.md.distributable
+
+# Editor/OS
+*.swp
+*~
+.DS_Store
