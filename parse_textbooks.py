@@ -13,6 +13,49 @@ def read_text(path):
     with open(path, 'r', encoding='utf-8') as f:
         return f.read()
 
+
+# Corrections for systematic PDF text extraction errors.
+# Subjoined consonants (ལ, ར, ཡ etc.) are often lost during PDF-to-text
+# conversion. These are safe compound-word replacements where the wrong
+# form is unambiguously an OCR error.
+TEXT_CORRECTIONS = [
+    # སོབ → སློབ (subjoined ལ lost)
+    ('སོབ་ཕྲུག', 'སློབ་ཕྲུག'),   # student
+    ('སོབ་དཔོན', 'སློབ་དཔོན'),   # teacher
+    ('སོབ་ཁིད', 'སློབ་ཁྲིད'),    # teaching
+    ('སོབ་ཚན', 'སློབ་ཚན'),      # lesson
+    ('སོབ་སོང', 'སློབ་སྦྱོང'),    # study (double fix)
+    ('སོབ་གྲྭ', 'སློབ་གྲྭ'),     # school
+    ('སོབ་མ', 'སློབ་མ'),         # student (f)
+    # གོག → གློག (subjoined ལ lost)
+    ('གོག་ཀླད', 'གློག་ཀླད'),     # computer
+    ('གོག་བརྙན', 'གློག་བརྙན'),   # movie
+    # བསབ → བསླབ (subjoined ལ lost)
+    ('བསབས', 'བསླབས'),          # taught (past)
+    ('བསབ་', 'བསླབ་'),           # teach
+    # སོང → སྦྱོང (subjoined བ+ཡ lost)
+    ('སོང་བརྡར', 'སྦྱོང་བརྡར'),   # practice
+    # བསར → བསྐྱར (subjoined ཀ+ཡ lost)
+    ('བསར་ཟོས', 'བསྐྱར་ཟོས'),    # revision
+    # གོགས → གྲོགས (subjoined ར lost)
+    ('གོགས་པོ', 'གྲོགས་པོ'),     # male friend
+    ('གོགས་མོ', 'གྲོགས་མོ'),     # female friend
+    # སིད → སྐྱིད (subjoined ཀ+ཡ lost)
+    ('སིད་པོ', 'སྐྱིད་པོ'),       # happy
+    # ཁོམ → ཁྲོམ (subjoined ར lost)
+    ('ཁོམ་ལ', 'ཁྲོམ་ལ'),         # to market
+    ('ཁོམ།', 'ཁྲོམ།'),           # market
+    # སར → སྐར (subjoined ཀ lost)
+    ('སར་མ', 'སྐར་མ'),           # minute
+]
+
+
+def fix_ocr_errors(text):
+    """Apply known OCR error corrections to extracted textbook text."""
+    for wrong, right in TEXT_CORRECTIONS:
+        text = text.replace(wrong, right)
+    return text
+
 def split_lessons(text, level_marker):
     """Split text into lessons based on lesson boundary markers."""
     # Pattern: གནས་ཚད་...། ༠X།༠Y
@@ -552,6 +595,7 @@ def parse_a0_introweek(text):
 
 def parse_book(text, level, use_sub=True):
     """Generic parser for A1/A2/B1 textbooks."""
+    text = fix_ocr_errors(text)
     lessons_raw = split_lessons(text, level)
     lessons = []
 
