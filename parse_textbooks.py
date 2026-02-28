@@ -98,7 +98,16 @@ def extract_vocabulary(lines):
 
         # A short line (likely a word) followed by a longer line (definition)
         if current_word is None:
-            if len(stripped) < 40:  # Likely a vocabulary word (Tibetan is compact)
+            # Split "word། example sentence" patterns where the word repeats
+            if '།' in stripped and len(stripped) > 15:
+                parts = stripped.split('།', 1)
+                candidate = parts[0].strip() + '།'
+                rest = parts[1].strip() if len(parts) > 1 else ''
+                # If the word appears again in the rest, it's word + example
+                word_root = parts[0].strip().rstrip('་')
+                if rest and word_root and word_root in rest and len(candidate) < 20:
+                    stripped = candidate
+            if len(stripped) < 30:  # Likely a vocabulary word (Tibetan is compact)
                 current_word = stripped
         else:
             if current_def is None:
@@ -1305,6 +1314,102 @@ VOCAB_TRANSLATIONS = {
     'སེད་ཀ': 'Cold/chill',
     'སོན་མ།': 'Before/previously',
     'མ།': 'Mother',
+    # === EXPANDED TRANSLATIONS (batch 13: remaining short words) ===
+    'སོས།': 'Recovered/healed',
+    'སོར།': 'Finger/digit',
+    'སོལ་ཡོད།': 'There is a custom',
+    'སོམ།': 'Thought/thinking',
+    'སོམ་པོ།': 'Arrogant/boastful',
+    'ནང་སོག': 'Inner Mongolia',
+    'རྱེད།': 'Is (copula)',
+    'འགྲོར།': 'To go',
+    'སོང་ཆང་།': 'Farewell party',
+    'བོ་བ།': 'Tibetan person',
+    'སིག་ཆས།': 'Cleaning supplies',
+    'སོག': 'Mongolia/Mongolian',
+    'སིན་བདག': 'Patron/donor',
+    'ཧ་ཡང་།': 'Oh!/surprise',
+    'རིན་གྲོང་།': 'Price/cost',
+    'ཤྱེས་བ་ཡོན་': 'Education',
+    'དྲང་པོ་དྲང་': 'Honest and straight',
+    'དང་པོ་རེད།': 'Is the first',
+    'བཤད་སོང་།': 'Was said/told',
+    'སེས་སྐར།': 'Star/planet',
+    'ཐོད་པ་གཏུགས་': 'Touching foreheads',
+    'རི་འཛེགས་རུ་': 'Mountaineering team',
+    'དོམ་དང་དེད།': 'Bear and chase',
+    'ནློར་བཅློས།': 'Artificial/manufactured',
+    'སློན་འགློག': 'Electric power',
+    'རྙི་ཤྙིང་།': 'Compassionate/kind',
+    'མུ་མེན།': 'Ignorant/illiterate',
+    'ག་སིག': 'Which ones/somewhere',
+    'སེབ་ཚོང་།': 'Wholesale',
+    'སིལ་ཚོང།': 'Retail',
+    'རོག་དྲ།': 'Web/internet',
+    'རོག་དྲ་ཚ་པོ།': 'Very busy (internet)',
+    'རློག་དྲ།': 'Web/internet',
+    'སྣ་ཁ།': 'Nose tip/snot',
+    'མགོ་ག཈ྱིས་མ།': 'Two-headed/duplicitous',
+    'རྱེད་མོ།': 'Game/play',
+    'དགོས་ཀྱྲི་རེད།': 'It is needed',
+    'ཆགས་ཀྩི་རྱེད།': 'It becomes/is formed',
+    'སྡུག་རེ་སྡུག་ཚད།': 'Immense suffering',
+    'སྦྲང་རི།': 'Beehive/honey mountain',
+    'རེད་ཐང་།': 'Plain/field',
+    'ས་མ་འབོག': 'Unsettled/not stable',
+    'གདྦྱོང་པ།': 'Brave/courageous',
+    'རེས་ཟྱིན།': 'Diary/journal',
+    # === EXPANDED TRANSLATIONS (batch 14: from sentence splitting) ===
+    'ཁམས་དྭངས་པོ།': 'In good health',
+    'ཁོང་ཁོ་ལངས།': 'Got angry',
+    'གཅན་གཟན་ཁང་།': 'Zoo',
+    'གཏན་འབེབས།': 'Decision/determination',
+    'གནས་སྟངས།': 'Situation/conditions',
+    'གཟབ་གཟབ།': 'Careful/cautious',
+    'གཡས་གཡྲོན།': 'Left and right',
+    'གཡས་ཕྲོགས།': 'Right side',
+    'ངྫོ་ཚ་ཁེལ་མེད།': 'Shameless',
+    'ཆོས་ལུགས།': 'Religion',
+    'ཉམས་མོང་།': 'Experience',
+    'དམྩིགས་ཡུལ།': 'Objective/goal',
+    'དུས་འགངས།': 'Time pressure/deadline',
+    'དོན་དངོས་ཐོག': 'In reality/actually',
+    'ནམ་ལངས།': 'Dawn/daybreak',
+    'བར་གསྱེང་།': 'Break/intermission',
+    'བརོན་འགྲུས།': 'Effort/diligence',
+    'བརྙན་འཕྱིན།': 'Television',
+    'བསམ་ཤྱེས།': 'Intellect/wisdom',
+    'མཁའ་རླུང་།': 'Atmosphere',
+    'མགྫོགས་ཟས།': 'Fast food',
+    'མཐའ་འཁོལ།': 'Surroundings/environment',
+    'མཚམས་མཚམས།': 'Sometimes/occasionally',
+    'མཚོ་དང་མཚེའུ།': 'Lakes and ponds',
+    'ཞབས་ཞུ་བ།': 'Servant/attendant',
+    'ཟླ་བ་གཅིག།': 'One month',
+    'འཆམ་འཆམ།': 'Walk/stroll',
+    'འཕོད་བསྱེན།': 'Hygiene/health',
+    'ཡིག་ཚད།': 'Standard/specification',
+    'རང་འཇགས།': 'Self-composed/calm',
+    'རྒྱུན་རིང་པོ།': 'Long-term/prolonged',
+    'རླུང་འཚུབ།': 'Storm/windstorm',
+    'ལེབ་ལེབ།': 'Flat',
+    'ལོགས།': 'Side/separately',
+    'ལྷན་འཛོམས།': 'Together/gathering',
+    'སེམས་འཚབ།': 'Worry/anxiety',
+    'སེམས་ཤ ོར།': 'Lost composure',
+    'སེར་མ།': 'Hail',
+    'སྫོད་པ་ངན་པ།': 'Bad conduct',
+    'ཕུན་སུམ་ཚོགས་པོ།': 'Excellent/magnificent',
+    'མཐུག་པོ་/སྲབ་པོ།': 'Thick/thin',
+    'སོབ་གྲྭ་ཆྱེན་མོ།': 'University',
+    'གངས་རྐྱིན་པོ་ཆེ།': 'Precious snow mountain',
+    'ཕར་འགངས།': 'Crowded/congested',
+    'གཡར་འཛིན།': 'Borrower/lender',
+    'མ་རབས་ཐ་ཤལ།': 'Inferior/degraded',
+    'ཞབས་བོ་འཁྲབ་ས།': 'Dance venue',
+    'ལྷ་མཆྲོད་རྱིམ་གྲོ།': 'Religious ceremony',
+    'རྒན་འཁོགས།': 'Aged/elderly',
+    'སྣང་བར་འགོ།': 'Starting to appear',
 }
 
 

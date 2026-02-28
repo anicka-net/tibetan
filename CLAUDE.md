@@ -76,8 +76,8 @@ and B1-Book-2. The V2 files (A1-V2, A2-V2) have richer content but use a
 different internal structure without these markers — the parser therefore
 uses the Book-1/Book-2 (beta) files for A1 and A2.
 
-The parser includes English translations for ~550 vocabulary items (~84%
-coverage). The remaining ~110 untranslated items are mostly OCR artifacts,
+The parser includes English translations for ~600 vocabulary items (~90%
+coverage). The remaining ~60 untranslated items are mostly OCR artifacts,
 sentence fragments, or garbled beta-book spellings that couldn't be decoded.
 
 **For future Claudes**: If you know Tibetan, please expand the

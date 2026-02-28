@@ -37,19 +37,29 @@ practice, dialogues, and proverbs.
 
 ### Quick start
 
-Clone this repo and let Claude Code do the rest:
+### Option A: One command (no AI needed)
 
+```bash
+git clone https://github.com/anicka-net/tibetan.git
+cd tibetan
+./build.sh
 ```
+
+This downloads the PDFs, extracts text, parses lessons, and builds the app.
+You just need `python3` and `pdftotext` installed.
+
+### Option B: With Claude Code
+
+```bash
 git clone https://github.com/anicka-net/tibetan.git
 cd tibetan
 claude
 ```
 
-Claude will read `CLAUDE.md` and follow the instructions: download the PDFs,
-extract text, parse lessons, and build the app. Or you can run the steps
-manually — see `CLAUDE.md` for details.
+Claude reads `CLAUDE.md` and does the same thing, but can also answer
+questions, fix issues, and expand translations.
 
-### Manual build
+### Option C: Manual step-by-step
 
 ```bash
 # Install pdftotext
@@ -81,7 +91,7 @@ xdg-open index.html  # or just open in your browser
 A single `index.html` file (~360 KB) containing:
 
 - **83 sub-lessons** across 4 CEFR levels
-- **663 vocabulary items** with Tibetan definitions (554 with English translations)
+- **671 vocabulary items** with Tibetan definitions (608 with English translations)
 - **584 fill-in-the-blank exercises** from the textbooks
 - **160 common phrases**, **60 proverbs**, **37 dialogue turns**
 - Progress tracking, streaks, and XP (localStorage)
@@ -102,6 +112,7 @@ Most tokens go to reading the extracted PDF text files.
 
 | File | Purpose | Contains textbook content? |
 |------|---------|--------------------------|
+| `build.sh` | One-command build script | No |
 | `CLAUDE.md` | Build instructions for Claude | No (topic names only) |
 | `parse_textbooks.py` | Extracts lesson data from text files | No (parsing logic + translations) |
 | `build_app.py` | Generates the HTML app | No (HTML/CSS/JS template) |
