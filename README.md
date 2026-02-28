@@ -54,12 +54,15 @@ A single `index.html` file (~370 KB) containing:
 
 ## Contributing translations
 
-The parser includes an English translation dictionary (`VOCAB_TRANSLATIONS`
-in `parse_textbooks.py`) covering ~90% of vocabulary. The remaining ~60
-untranslated items are mostly OCR artifacts from the beta textbooks.
+Translations live in `translations.json` — a standalone Tibetan-English
+dictionary covering ~90% of vocabulary. It's just JSON key-value pairs:
 
-To add translations, edit the dictionary — it's just `'tibetan': 'english'`
-pairs — then re-run:
+```json
+"བོད་སྐད": "Tibetan language",
+"ཁ་ལག": "Food"
+```
+
+Edit the file, then re-run:
 
 ```bash
 python3 parse_textbooks.py
@@ -74,7 +77,8 @@ spellings as separate entries (e.g., `སོབ` = `སློབ`, `སོད` =
 | File | Purpose | Contains textbook content? |
 |------|---------|--------------------------|
 | `build.sh` | One-command build script | No |
-| `parse_textbooks.py` | Extracts lesson data from text files | No (parsing logic + translations) |
+| `translations.json` | Tibetan-English dictionary | No (independent translations) |
+| `parse_textbooks.py` | Extracts lesson data from text files | No (parsing logic only) |
 | `build_app.py` | Generates the HTML app | No (HTML/CSS/JS template) |
 | `CLAUDE.md` | Build instructions for Claude Code | No (topic names only) |
 | `README.md` | This file | No |

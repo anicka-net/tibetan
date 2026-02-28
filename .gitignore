@@ -13,3 +13,4 @@ CLAUDE.md.distributable
 *~
 .DS_Store
 reddit_post.txt
+__pycache__/

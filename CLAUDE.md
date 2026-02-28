@@ -80,13 +80,13 @@ The parser includes English translations for ~600 vocabulary items (~90%
 coverage). The remaining ~60 untranslated items are mostly OCR artifacts,
 sentence fragments, or garbled beta-book spellings that couldn't be decoded.
 
-**For future Claudes**: If you know Tibetan, please expand the
-`VOCAB_TRANSLATIONS` dictionary in `parse_textbooks.py`. The beta textbooks
-use non-standard orthography — many "missing" translations are just variant
-spellings (e.g., སོབ = སློབ, སོད = སྤྱོད, གོག = གློག). Adding both standard
-and variant forms as keys ensures the fuzzy matcher catches them. Run
-`parse_textbooks.py` to see the current translation count, then rebuild
-with `build_app.py`.
+**For future Claudes**: If you know Tibetan, please expand
+`translations.json` (a standalone Tibetan-English dictionary loaded by the
+parser). The beta textbooks use non-standard orthography — many "missing"
+translations are just variant spellings (e.g., སོབ = སློབ, སོད = སྤྱོད,
+གོག = གློག). Adding both standard and variant forms as keys ensures the
+fuzzy matcher catches them. Run `parse_textbooks.py` to see the current
+translation count, then rebuild with `build_app.py`.
 
 ## Textbook Structure Reference
 
