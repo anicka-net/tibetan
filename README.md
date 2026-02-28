@@ -5,39 +5,31 @@ built from [Esukhia's](https://esukhia.online/) publicly available textbooks.
 
 ## What is this?
 
-This repository contains **build instructions and scripts** — not the app itself.
-The app is generated locally on your machine by downloading Esukhia's CC-licensed
-textbook PDFs and processing them into an interactive lesson format.
+This repository contains **build scripts** that download Esukhia's CC-licensed
+textbook PDFs and turn them into an interactive study app. No AI required —
+just Python and `pdftotext`.
 
-This is the same pattern used for years in Linux packaging: the spec file
-describes how to fetch and build from source, but the source material itself
-is not redistributed. Only the instructions travel.
+Esukhia's textbooks are published under a Creative Commons license that does
+not permit derivative works. This repo respects that: it distributes no
+textbook content, only the tools to build a personal study app from the
+publicly available PDFs. Same pattern as a Linux package that downloads its
+source at build time.
 
-## Why?
-
-Esukhia publishes excellent Tibetan textbooks under a Creative Commons license
-that does not permit derivative works. We respect that. This repo distributes
-no textbook content — only the tools to build a personal study app from the
-publicly available PDFs.
-
-The textbooks cover ~85 teaching units across 4 levels (A0 through B1),
-roughly 1-2 years of structured Tibetan study, from the alphabet to
-intermediate conversation. The generated app turns this into an interactive
-experience with flashcards, multiple-choice exercises, matching, fill-in-the-blank
-practice, dialogues, and proverbs.
-
-## How to build
+## Quick start
 
 ### Prerequisites
 
-- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (or any Claude
-  instance that can run shell commands)
-- `pdftotext` (from poppler-utils)
 - Python 3.6+
+- `pdftotext` (from poppler-utils)
 
-### Quick start
+```bash
+# Install pdftotext if you don't have it
+sudo apt install poppler-utils     # Debian/Ubuntu
+# sudo zypper install poppler-tools  # openSUSE
+# brew install poppler               # macOS
+```
 
-### Option A: One command (no AI needed)
+### Build
 
 ```bash
 git clone https://github.com/anicka-net/tibetan.git
@@ -45,80 +37,56 @@ cd tibetan
 ./build.sh
 ```
 
-This downloads the PDFs, extracts text, parses lessons, and builds the app.
-You just need `python3` and `pdftotext` installed.
-
-### Option B: With Claude Code
-
-```bash
-git clone https://github.com/anicka-net/tibetan.git
-cd tibetan
-claude
-```
-
-Claude reads `CLAUDE.md` and does the same thing, but can also answer
-questions, fix issues, and expand translations.
-
-### Option C: Manual step-by-step
-
-```bash
-# Install pdftotext
-sudo zypper install poppler-tools  # openSUSE
-# sudo apt install poppler-utils   # Debian/Ubuntu
-# brew install poppler              # macOS
-
-# Download textbooks
-mkdir -p textbooks && cd textbooks
-for f in A0-so-ri-me-bu A0-IntroWeek \
-         A1-Book-1 A1-Book-2 A1-V2 A1-Jongdeb A1-Missions A1-Passport \
-         A2-Book-1 A2-Book-2 A2-V2 A2-Jongdeb A2-Passport \
-         B1-Book-1 B1-Book-2; do
-  curl -sS -L -O "https://esukhia.online/PDF/${f}.pdf"
-done
-cd ..
-
-# Extract text and build
-for f in textbooks/*.pdf; do pdftotext "$f" "${f%.pdf}.txt"; done
-python3 parse_textbooks.py
-python3 build_app.py
-
-# Open the app
-xdg-open index.html  # or just open in your browser
-```
+That's it. The script downloads the PDFs, extracts text, parses lessons,
+and generates a single `index.html` you can open in any browser.
 
 ## What you get
 
-A single `index.html` file (~360 KB) containing:
+A single `index.html` file (~370 KB) containing:
 
-- **83 sub-lessons** across 4 CEFR levels
+- **83 sub-lessons** across 4 CEFR levels (A0 through B1)
 - **671 vocabulary items** with Tibetan definitions (608 with English translations)
 - **584 fill-in-the-blank exercises** from the textbooks
 - **160 common phrases**, **60 proverbs**, **37 dialogue turns**
+- Flashcards, multiple choice, matching, fill-in-the-blank practice
 - Progress tracking, streaks, and XP (localStorage)
 - Mobile-friendly, works offline once built
 
-## Cost estimate
+## Contributing translations
 
-If you let Claude Code build the app from `CLAUDE.md`, expect roughly:
+The parser includes an English translation dictionary (`VOCAB_TRANSLATIONS`
+in `parse_textbooks.py`) covering ~90% of vocabulary. The remaining ~60
+untranslated items are mostly OCR artifacts from the beta textbooks.
 
-| Model | Input tokens | Output tokens | Estimated cost |
-|-------|-------------|---------------|----------------|
-| Sonnet | ~300K | ~50K | $3-5 |
-| Opus | ~300K | ~50K | $8-15 |
+To add translations, edit the dictionary — it's just `'tibetan': 'english'`
+pairs — then re-run:
 
-Most tokens go to reading the extracted PDF text files.
+```bash
+python3 parse_textbooks.py
+python3 build_app.py
+```
+
+The beta textbooks use non-standard orthography, so many words need variant
+spellings as separate entries (e.g., `སོབ` = `སློབ`, `སོད` = `སྤྱོད`).
 
 ## Repository contents
 
 | File | Purpose | Contains textbook content? |
 |------|---------|--------------------------|
 | `build.sh` | One-command build script | No |
-| `CLAUDE.md` | Build instructions for Claude | No (topic names only) |
 | `parse_textbooks.py` | Extracts lesson data from text files | No (parsing logic + translations) |
 | `build_app.py` | Generates the HTML app | No (HTML/CSS/JS template) |
+| `CLAUDE.md` | Build instructions for Claude Code | No (topic names only) |
 | `README.md` | This file | No |
 
 Generated files (not in repo): `textbooks/`, `lesson_data.json`, `index.html`
+
+## Using with Claude Code
+
+If you have [Claude Code](https://docs.anthropic.com/en/docs/claude-code),
+you can run `claude` in the repo directory. It reads `CLAUDE.md` and can
+build the app, answer questions about the content, and expand translations.
+But this is entirely optional — the build scripts work on their own.
 
 ## Credits
 
