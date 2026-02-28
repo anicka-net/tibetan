@@ -720,7 +720,6 @@ const ALL_LESSONS = {lesson_json};
 
 // ===== DATA STRUCTURES =====
 const LEVELS = [
-  {{ id: 'A0', name: 'Intro Week', nameBo: 'འགོ་བརྗོད།', desc: 'Absolute beginner basics', css: 'a0' }},
   {{ id: 'A1', name: 'Beginner', nameBo: 'གནས་ཚད་དང་པོ།', desc: '13 lessons, greetings to colors', css: 'a1' }},
   {{ id: 'A2', name: 'Elementary', nameBo: 'གནས་ཚད་གཉིས་པ།', desc: '13 lessons, daily life to homeland', css: 'a2' }},
   {{ id: 'B1', name: 'Intermediate', nameBo: 'གནས་ཚད་གསུམ་པ།', desc: '13 lessons, culture to destiny', css: 'b1' }},
@@ -908,11 +907,11 @@ function renderLevelScreen(levelId) {{
   const groups = getLessonGroups(levelId);
   let html = '';
 
-  if (groups.length === 0 || (levelId === 'A0' && groups.every(g => g.subs.every(s => s.vocab.length === 0 && s.phrases.length === 0)))) {{
+  if (groups.length === 0) {{
     html = `
       <div class="empty-state">
         <div class="icon">&#128218;</div>
-        <p>A0 Intro Week content is structured differently.<br>Lessons coming soon!</p>
+        <p>No lessons available for this level.</p>
       </div>
     `;
   }} else {{
