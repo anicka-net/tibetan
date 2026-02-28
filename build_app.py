@@ -1043,14 +1043,19 @@ function generateExercises(lesson) {{
     }}
   }}
 
-  // 4. Phrase flashcards
-  for (const p of shuffle(phrases).slice(0, 6)) {{
-    exercises.push({{ type: 'flashcard_phrase', data: {{ bo: p, en: '' }} }});
+  // 4. Phrase flashcards (only include phrases that have English translations)
+  const phrasesWithEn = phrases.filter(p => typeof p === 'object' && p.en);
+  for (const p of shuffle(phrasesWithEn).slice(0, 6)) {{
+    exercises.push({{ type: 'flashcard_phrase', data: p }});
   }}
 
-  // 5. Fill-in-blank from textbook (as practice)
+  // 5. Fill-in-blank from textbook
   const validBlanks = fillBlanks.filter(fb => fb.sentence && fb.sentence.includes('_'));
-  for (const fb of shuffle(validBlanks).slice(0, 5)) {{
+  // Prioritize exercises with answers (interactive particle exercises)
+  const answerable = validBlanks.filter(fb => fb.answer);
+  const practiceOnly = validBlanks.filter(fb => !fb.answer);
+  const selectedBlanks = [...shuffle(answerable), ...shuffle(practiceOnly).slice(0, Math.max(0, 5 - answerable.length))].slice(0, 5);
+  for (const fb of selectedBlanks) {{
     exercises.push({{ type: 'fill_practice', data: fb }});
   }}
 
@@ -1238,20 +1243,57 @@ function handleMatch(el) {{
 }}
 
 function renderFillPractice(container, data) {{
-  const sentence = data.sentence.replace(/_+/g, '<span class="blank-slot">___</span>');
+  const hasAnswer = !!data.answer;
+  const sentence = data.sentence.replace(/_+/g, '<span class="blank-slot" id="fillBlank">___</span>');
   const wordBank = data.word_bank || [];
 
+  const chipHtml = wordBank.length > 0 ? `
+    <div style="font-size:13px;color:var(--gray);font-family:sans-serif;margin-bottom:8px;">
+      ${{hasAnswer ? 'Tap the correct particle:' : 'Tap a word to fill the blank:'}}
+    </div>
+    <div class="word-bank animate-in">
+      ${{[...new Set(wordBank)].map(w => {{
+        const clean = w.replace(/[།་ ]+$/g, '').trim();
+        return `<span class="word-chip option-btn" data-value="${{clean}}" onclick="selectFillAnswer(this, '${{clean.replace(/'/g, "\\\\'")}}')">${{clean}}</span>`;
+      }}).join('')}}
+    </div>
+  ` : '';
+
   container.innerHTML = `
-    <div class="exercise-prompt animate-in">Fill in the blank (practice)</div>
-    <div class="sentence-box animate-in">${{sentence}}</div>
-    ${{wordBank.length > 0 ? `
-      <div style="font-size:13px;color:var(--gray);font-family:sans-serif;margin-bottom:8px;">Word bank:</div>
-      <div class="word-bank">
-        ${{wordBank.map(w => `<span class="word-chip" style="cursor:default;">${{w}}</span>`).join('')}}
-      </div>
-    ` : ''}}
+    <div class="exercise-prompt animate-in">${{hasAnswer ? 'Fill in the blank' : 'Fill in the blank (practice)'}}</div>
+    <div class="sentence-box animate-in" id="sentenceBox">${{sentence}}</div>
+    ${{chipHtml}}
   `;
-  setButton('continue');
+
+  state.selectedAnswer = null;
+  state.checked = false;
+
+  if (hasAnswer) {{
+    // Scored mode: store correct answer for handleCheck
+    const ex = state.exercises[state.currentEx];
+    ex.correct = data.answer;
+    setButton('check', true);
+  }} else {{
+    // Practice mode: continue button, but word bank is still tappable
+    setButton('continue');
+  }}
+}}
+
+function selectFillAnswer(el, value) {{
+  if (state.checked) return;
+  document.querySelectorAll('.word-bank .option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedAnswer = value;
+
+  // Fill the blank with the selected word
+  const blank = document.getElementById('fillBlank');
+  if (blank) {{
+    blank.textContent = value;
+    blank.style.color = 'var(--green)';
+    blank.style.borderBottom = '2px solid var(--green)';
+  }}
+
+  setButton('check');
 }}
 
 function renderDialogueRead(container, dialogue) {{
@@ -1327,6 +1369,7 @@ function handleCheck() {{
     case 'mc_bo_en':
     case 'mc_en_bo':
     case 'mc_bo_def':
+    case 'fill_practice':
       correct = state.selectedAnswer === ex.correct;
       break;
     default:

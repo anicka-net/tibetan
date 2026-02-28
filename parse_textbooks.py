@@ -152,31 +152,66 @@ def extract_fill_blanks(lines):
     blanks = []
     in_section = False
     word_bank = None
+    pending_particles = []  # collect standalone particle lines
 
     for i, line in enumerate(lines):
         stripped = line.strip()
 
-        if 'བར་སྟོང' in stripped:
+        if 'བར་སྟོང' in stripped or ('ཁ་བསང' in stripped or 'ཁ་སྐོང' in stripped or 'ཁ་བསྐང' in stripped):
             in_section = True
+            word_bank = None
+            pending_particles = []
             continue
 
         if in_section and any(marker in stripped for marker in [
             'སྦྱོང་བརྡར', 'གེང་མོལ', 'གླེང་མོལ', 'འཁྲབ་སྟོན', 'Second Beta', 'ཤོག་གྲངས'
         ]):
             in_section = False
+            word_bank = None
+            pending_particles = []
             continue
 
         if not in_section or not stripped:
             continue
 
-        # Word bank line (contains multiple short words separated by periods or spaces)
-        if word_bank is None and ('དམིགས' not in stripped) and ('བེད་སོ' not in stripped):
-            if '།' in stripped and len(stripped.split('།')) >= 3:
-                word_bank = [w.strip() for w in stripped.split('།') if w.strip()]
+        # Skip instruction/example lines
+        if 'དམིགས' in stripped or 'བེད་སོ' in stripped:
+            continue
+        # Skip example lines (དཔེར་ན = "for example")
+        if stripped.startswith('དཔེར་ན'):
+            continue
+        # Skip answer lines (ལན། = "answer")
+        if stripped.startswith('ལན།') or stripped.startswith('ལན '):
+            continue
+
+        # Check for standalone particle line (just a particle + shad, nothing else)
+        particle_candidate = stripped.rstrip('།་ ')
+        if particle_candidate and len(particle_candidate) <= 6 and '_' not in stripped:
+            # Check if it's all Tibetan consonants/vowels (a single short word)
+            is_tibetan_word = all(
+                0x0F00 <= ord(ch) <= 0x0FFF or ch in ' ་།'
+                for ch in particle_candidate
+            ) and any(0x0F40 <= ord(ch) <= 0x0F6A for ch in particle_candidate)
+            if is_tibetan_word and '༡' not in stripped and '༢' not in stripped:
+                pending_particles.append(particle_candidate)
                 continue
-            elif '་' in stripped and '_' not in stripped and '༡' not in stripped:
-                # Could be a word bank with tsheg-separated words
-                pass
+
+        # Word bank line: multiple short words separated by shad on a single line
+        # This can appear before exercises OR between exercise groups
+        if ('དམིགས' not in stripped) and ('བེད་སོ' not in stripped) and '_' not in stripped:
+            parts = [w.strip() for w in stripped.split('།') if w.strip()]
+            if len(parts) >= 3 and all(len(p) <= 20 for p in parts):
+                # If we had pending particles, they become a word bank
+                if pending_particles:
+                    word_bank = pending_particles[:]
+                    pending_particles = []
+                word_bank = parts
+                continue
+
+        # Before processing exercises, check if pending particles form a word bank
+        if pending_particles and ('_' in stripped or '་་་་' in stripped):
+            word_bank = pending_particles[:]
+            pending_particles = []
 
         # Sentence with blank
         if '_' in stripped or '་་་་' in stripped:
@@ -184,6 +219,196 @@ def extract_fill_blanks(lines):
             blanks.append({'sentence': sentence, 'word_bank': word_bank})
 
     return blanks
+
+
+def _get_suffix_letter(text_before_blank):
+    """Extract the Tibetan suffix letter from the syllable immediately before a blank.
+
+    Returns the final consonant (suffix) of the last syllable before the blank,
+    which determines the correct particle form. Returns None if no valid
+    Tibetan consonant is found.
+    """
+    # Strip trailing tsheg, spaces, shad
+    text = text_before_blank.rstrip(' \t།་')
+    if not text:
+        return None
+
+    # Walk backwards to find the last Tibetan consonant
+    # Tibetan consonants: U+0F40 to U+0F6A
+    # Vowel signs: U+0F72 (i), U+0F74 (u), U+0F7A (e), U+0F7C (o), U+0F71 (aa)
+    # We skip vowel signs to get the consonant they attach to
+    for ch in reversed(text):
+        cp = ord(ch)
+        # Skip vowel signs
+        if cp in (0x0F71, 0x0F72, 0x0F74, 0x0F7A, 0x0F7C):
+            continue
+        # Tibetan consonant
+        if 0x0F40 <= cp <= 0x0F6A:
+            return ch
+        # If we hit anything else (punctuation, space, etc.), stop
+        break
+    return None
+
+
+# Particle rules: suffix letter -> correct particle
+# Based on standard Tibetan grammar (བྱ་ཚིག་གི་སྒྲ་སྦྱོར།)
+
+GENITIVE_RULES = {
+    # After ག ད བ ས -> གི
+    'ག': 'གི', 'ད': 'གི', 'བ': 'གི', 'ས': 'གི',
+    # After ང -> གི (some texts use གྱི)
+    'ང': 'གི',
+    # After ན མ ར ལ -> གྱི
+    'ན': 'གྱི', 'མ': 'གྱི', 'ར': 'གྱི', 'ལ': 'གྱི',
+    # After vowel (no suffix) -> འི or ཡི
+    None: 'ཡི',
+}
+
+AGENTIVE_RULES = {
+    # After ག ད བ ས -> གིས
+    'ག': 'གིས', 'ད': 'གིས', 'བ': 'གིས', 'ས': 'གིས',
+    # After ང -> གིས
+    'ང': 'གིས',
+    # After ན མ ར ལ -> གྱིས
+    'ན': 'གྱིས', 'མ': 'གྱིས', 'ར': 'གྱིས', 'ལ': 'གྱིས',
+    # After vowel -> ས or ཡིས
+    None: 'ས',
+}
+
+LOCATIVE_RULES = {
+    # After ག བ -> ཏུ
+    'ག': 'ཏུ', 'བ': 'ཏུ',
+    # After ད ས -> དུ
+    'ད': 'དུ', 'ས': 'སུ',
+    # After ང ན མ ར ལ -> དུ
+    'ང': 'དུ', 'ན': 'དུ', 'མ': 'དུ', 'ར': 'དུ', 'ལ': 'དུ',
+    # After vowel -> རུ or ར
+    None: 'རུ',
+}
+
+DATIVE_RULES = {
+    # After ག བ -> ཏུ (same as locative in many cases)
+    'ག': 'ལ', 'བ': 'ལ', 'ད': 'ལ', 'ས': 'ལ',
+    'ང': 'ལ', 'ན': 'ལ', 'མ': 'ལ', 'ར': 'ལ', 'ལ': 'ལ',
+    None: 'ལ',
+}
+
+PARTICLE_SETS = {
+    'genitive': GENITIVE_RULES,
+    'agentive': AGENTIVE_RULES,
+    'locative': LOCATIVE_RULES,
+    'dative': DATIVE_RULES,
+}
+
+
+# Known particles by type (for detecting particle word banks)
+KNOWN_PARTICLES = {
+    'genitive': {'གི', 'གྱི', 'ཀྱི', 'འི', 'ཡི', 'ཀི'},
+    'agentive': {'གིས', 'གྱིས', 'ཀྱིས', 'ས', 'ཡིས', 'ཡྱིས', 'པྨོས', 'སུས'},
+    'locative': {'དུ', 'ཏུ', 'སུ', 'རུ', 'ར', 'ན'},
+}
+
+# All known particles flattened
+ALL_PARTICLES = set()
+for _particles in KNOWN_PARTICLES.values():
+    ALL_PARTICLES.update(_particles)
+
+
+def _is_particle_word_bank(word_bank):
+    """Check if a word bank consists entirely of known particles.
+
+    Returns the particle type if all entries are particles of the same type,
+    or None otherwise.
+    """
+    if not word_bank or len(word_bank) < 2:
+        return None
+
+    clean = [w.strip().rstrip('།་ ') for w in word_bank]
+    clean = [w for w in clean if w]
+
+    if not clean:
+        return None
+
+    # Check if all entries are known particles
+    for ptype, particles in KNOWN_PARTICLES.items():
+        if all(w in particles for w in clean):
+            return ptype
+
+    return None
+
+
+def generate_particle_answers(fill_blanks, grammar=None):
+    """For fill-in-the-blank exercises that test particles, generate the correct answer.
+
+    Detects particle exercises by checking if their word bank consists entirely
+    of known particles. When the word bank has the same count as the exercises
+    sharing it, uses the word bank entries as ordered answers. Otherwise, applies
+    suffix-based rules.
+
+    Returns count of exercises answered.
+    """
+    answered = 0
+
+    # Group exercises by word bank identity (exercises sharing same word bank)
+    groups = {}
+    for i, ex in enumerate(fill_blanks):
+        wb = ex.get('word_bank')
+        if wb is None:
+            continue
+        wb_key = tuple(wb)
+        if wb_key not in groups:
+            groups[wb_key] = []
+        groups[wb_key].append(i)
+
+    for wb_key, indices in groups.items():
+        word_bank = list(wb_key)
+        ptype = _is_particle_word_bank(word_bank)
+        if not ptype:
+            continue
+
+        rules = PARTICLE_SETS[ptype]
+
+        # If word bank count == exercise count, use as ordered answers
+        use_ordered = len(word_bank) == len(indices)
+
+        for pos, idx in enumerate(indices):
+            ex = fill_blanks[idx]
+            sentence = ex.get('sentence', '')
+
+            # Verify there's a short blank
+            has_blank = any(p in sentence for p in ['______', '_____', '____', '___', '་་་་'])
+            if not has_blank:
+                continue
+
+            # Find the blank and get text before it
+            text_before = sentence
+            for pattern in ['______', '_____', '____', '___', '་་་་']:
+                if pattern in sentence:
+                    text_before = sentence.split(pattern, 1)[0]
+                    break
+
+            # Must have Tibetan text before blank
+            has_tibetan_before = any(
+                0x0F40 <= ord(ch) <= 0x0F6A for ch in text_before
+            )
+            if not has_tibetan_before:
+                continue
+
+            if use_ordered:
+                # Use the word bank entry at this position as the answer
+                answer = word_bank[pos].strip().rstrip('།་ ')
+            else:
+                # Fall back to suffix-based rules
+                suffix = _get_suffix_letter(text_before)
+                answer = rules.get(suffix)
+
+            if answer:
+                ex['answer'] = answer
+                ex['particle_type'] = ptype
+                answered += 1
+
+    return answered
+
 
 def extract_common_phrases(lines):
     """Extract common phrases from རྒྱུན་སྤྱོད section."""
@@ -342,6 +567,9 @@ def parse_book(text, level, use_sub=True):
         vocab = extract_vocabulary(lines)
         grammar = extract_grammar(lines)
         fill_blanks = extract_fill_blanks(lines)
+        particle_count = generate_particle_answers(fill_blanks)
+        if particle_count:
+            print(f"    Generated {particle_count} particle answers for {level}/{lesson_num}.{sub_num}")
         phrases = extract_common_phrases(lines)
         dialogue = extract_dialogue(lines)
         proverb = extract_proverb(lines)
