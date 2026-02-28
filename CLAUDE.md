@@ -94,7 +94,7 @@ translation count, then rebuild with `build_app.py`.
 
 | Level | Book | Lessons | Notes |
 |-------|------|---------|-------|
-| A0 | IntroWeek | 7 | Tibetan immersion, different structure |
+| A0 | IntroWeek | 7 | Different structure, not parsed (empty content) |
 | A0 | so-ri-me-bu | ~14 | Alphabet/phonics, pdftotext broken — skip |
 | A1 | Book-1 + Book-2 | 13 (1-6 + 7-13) | Tibetan immersion, beta |
 | A1 | V2 | 13 | Final version but unparseable structure |
@@ -103,15 +103,6 @@ translation count, then rebuild with `build_app.py`.
 | B1 | Book-1 + Book-2 | 13 (1-6 + 7-13) | Tibetan immersion, beta |
 
 ### Topic Lists
-
-**A0-IntroWeek (7 lessons):**
-1. འདི་ག་རེ་རེད། — What is this?
-2. འདི་སུའི་རེད། — Whose is this?
-3. དེབ་ག་ཚོད་ཡོད། — How many books?
-4. འདུག་དང་ཡོད་རེད། — འདུག vs ཡོད་རེད
-5. ག་རེ་བྱེད་ཀྱི་ཡོད། — What are you doing?
-6. ཁ་ལག་བཟས་པ་ཡིན། — I ate food (past tense)
-7. སང་ཉིན་ཡོང་གི་ཡིན། — I'll come tomorrow (future)
 
 **A1 (13 lessons x 2 sub-lessons):**
 1. འཚམས་འདྲི་དང་ངོ་སྤྲོད། — Greetings & Introductions
@@ -176,8 +167,8 @@ extracts the most useful ones:
 ### Note: No English in A0-A2
 
 The A0-A2 textbooks are 100% Tibetan immersion. The app must supply
-English translations. The `VOCAB_TRANSLATIONS` dictionary in the parser
-provides ~100 translations. Expand it for better coverage, or use the
+English translations. The `translations.json` dictionary provides ~600
+translations (~90% coverage). Expand it for better coverage, or use the
 Tibetan definitions for immersion-style exercises.
 
 The Passport files (A1-Passport.pdf, A2-Passport.pdf) are bilingual
@@ -185,6 +176,6 @@ Tibetan/English and useful as translation references.
 
 ## Summary
 
-Total content: ~85 teaching units across 4 CEFR levels (A0-B1), covering
-roughly 1-2 years of structured Tibetan study, from alphabet to intermediate
-conversation.
+Total content: 76 sub-lessons across 3 CEFR levels (A1-B1), covering
+roughly 1-2 years of structured Tibetan study, from basic conversation
+to intermediate topics.

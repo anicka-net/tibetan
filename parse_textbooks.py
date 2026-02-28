@@ -435,35 +435,8 @@ def main():
     base = Path('textbooks')
     all_lessons = []
 
-    # Parse A0-IntroWeek
-    print("Parsing A0-IntroWeek...")
-    text = read_text(base / 'A0-IntroWeek.txt')
-    # A0 has different structure, parse what we can
-    vocab = extract_vocabulary(text.split('\n'))
-    phrases = extract_common_phrases(text.split('\n'))
-    a0_topics = [
-        {'bo': 'འདི་ག་རེ་རེད།', 'en': 'What is this?'},
-        {'bo': 'འདི་སུའི་རེད།', 'en': 'Whose is this?'},
-        {'bo': 'དེབ་ག་ཚོད་ཡོད།', 'en': 'How many books?'},
-        {'bo': 'འདུག་དང་ཡོད་རེད།', 'en': 'འདུག vs ཡོད་རེད'},
-        {'bo': 'ག་རེ་བྱེད་ཀྱི་ཡོད།', 'en': 'What are you doing?'},
-        {'bo': 'ཁ་ལག་བཟས་པ་ཡིན།', 'en': 'I ate food (Past tense)'},
-        {'bo': 'སང་ཉིན་ཡོང་གི་ཡིན།', 'en': "I'll come tomorrow (Future)"},
-    ]
-    for i, topic in enumerate(a0_topics):
-        all_lessons.append({
-            'level': 'A0',
-            'lesson': i + 1,
-            'sub': 1,
-            'topicBo': topic['bo'],
-            'topicEn': topic['en'],
-            'vocab': [],
-            'grammar': None,
-            'phrases': [],
-            'dialogue': [],
-            'proverb': None,
-            'fillBlanks': [],
-        })
+    # A0-IntroWeek has a different structure without གནས་ཚད markers
+    # and the parser can't extract usable content from it. Skipping.
 
     # Parse A1 (Book-1 has lessons 1-6, Book-2 has lessons 7-13)
     # Using beta books because V2 uses different structure without གནས་ཚད markers

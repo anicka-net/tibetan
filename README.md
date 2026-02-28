@@ -1,6 +1,6 @@
 # བོད་སྐད་སློབ་ཚན། — Tibetan Learning App
 
-An interactive Tibetan language learning app covering CEFR levels A0 through B1,
+An interactive Tibetan language learning app covering CEFR levels A1 through B1,
 built from [Esukhia's](https://esukhia.online/) publicly available textbooks.
 
 ## What is this?
@@ -44,7 +44,7 @@ and generates a single `index.html` you can open in any browser.
 
 A single `index.html` file (~370 KB) containing:
 
-- **83 sub-lessons** across 4 CEFR levels (A0 through B1)
+- **76 sub-lessons** across 3 CEFR levels (A1 through B1)
 - **671 vocabulary items** with Tibetan definitions (608 with English translations)
 - **584 fill-in-the-blank exercises** from the textbooks
 - **160 common phrases**, **60 proverbs**, **37 dialogue turns**
