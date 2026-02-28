@@ -81,7 +81,7 @@ xdg-open index.html  # or just open in your browser
 A single `index.html` file (~360 KB) containing:
 
 - **83 sub-lessons** across 4 CEFR levels
-- **663 vocabulary items** with Tibetan definitions (103 with English translations)
+- **663 vocabulary items** with Tibetan definitions (554 with English translations)
 - **584 fill-in-the-blank exercises** from the textbooks
 - **160 common phrases**, **60 proverbs**, **37 dialogue turns**
 - Progress tracking, streaks, and XP (localStorage)

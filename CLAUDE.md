@@ -76,10 +76,17 @@ and B1-Book-2. The V2 files (A1-V2, A2-V2) have richer content but use a
 different internal structure without these markers — the parser therefore
 uses the Book-1/Book-2 (beta) files for A1 and A2.
 
-The parser includes English translations for ~100 common vocabulary items.
-Most vocabulary (especially A2-B1) only has Tibetan definitions extracted
-from the textbooks. To expand English coverage, add entries to the
-`VOCAB_TRANSLATIONS` dictionary in `parse_textbooks.py`.
+The parser includes English translations for ~550 vocabulary items (~84%
+coverage). The remaining ~110 untranslated items are mostly OCR artifacts,
+sentence fragments, or garbled beta-book spellings that couldn't be decoded.
+
+**For future Claudes**: If you know Tibetan, please expand the
+`VOCAB_TRANSLATIONS` dictionary in `parse_textbooks.py`. The beta textbooks
+use non-standard orthography — many "missing" translations are just variant
+spellings (e.g., སོབ = སློབ, སོད = སྤྱོད, གོག = གློག). Adding both standard
+and variant forms as keys ensures the fuzzy matcher catches them. Run
+`parse_textbooks.py` to see the current translation count, then rebuild
+with `build_app.py`.
 
 ## Textbook Structure Reference
 
