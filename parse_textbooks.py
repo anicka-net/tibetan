@@ -38,6 +38,22 @@ TEXT_CORRECTIONS = [
     # === Phase 3: Blanket patterns (high-impact, catch-all) ===
     # U+0F48 (཈) is unassigned in Unicode; always broken ཉ (U+0F49)
     ('\u0F48', 'ཉ'),                   # ~339 occurrences (renders as □ box)
+    # Spurious subjoined RA (U+0FB2) after consonants that NEVER take it (~313)
+    # These consonants cannot have subjoined RA in standard Tibetan;
+    # the RA was spuriously inserted during PDF text extraction.
+    ('ཡ\u0FB2', 'ཡ'),                 # ~111 (ཡྲོད→ཡོད, ཡྲིན→ཡིན, etc.)
+    ('ཆ\u0FB2', 'ཆ'),                 # ~44 (ཆྲོས→ཆོས, ཆྲེན→ཆེན, etc.)
+    ('འ\u0FB2', 'འ'),                 # ~39 (འྲི→འི, པའྲི→པའི, etc.)
+    ('ཉ\u0FB2', 'ཉ'),                 # ~27 (ཉྲོ→ཉོ = buy, etc.)
+    ('ཅ\u0FB2', 'ཅ'),                 # ~24 (གཅྲིག→གཅིག = one, etc.)
+    ('ར\u0FB2', 'ར'),                 # ~20 (རྲོགས→རོགས = help, etc.)
+    ('ཞ\u0FB2', 'ཞ'),                 # ~20 (ཞྲིག→ཞིག = a/one, etc.)
+    ('ན\u0FB2', 'ན'),                 # ~10 (ནྲོར→ནོར = mistake, etc.)
+    ('ལ\u0FB2', 'ལ'),                 # ~8 (ལྲོག→ལོག = return, etc.)
+    ('ཤ\u0FB2', 'ཤ'),                 # ~4
+    ('ང\u0FB2', 'ང'),                 # ~3
+    ('ཟ\u0FB2', 'ཟ'),                 # ~2
+    ('ཇ\u0FB2', 'ཇ'),                 # ~1
     # No Tibetan word སོབ exists; always broken སློབ (subjoined ལ lost)
     ('སོབ', 'སློབ'),                   # ~1100+ remaining after phase 1
     # སོད after tsheg is always broken སྤྱོད (subjoined པ+ཡ lost);
