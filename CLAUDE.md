@@ -84,8 +84,8 @@ and B1-Book-2. The V2 files (A1-V2, A2-V2) have richer content but use a
 different internal structure without these markers — the parser therefore
 uses the Book-1/Book-2 (beta) files for A1 and A2.
 
-The parser includes English translations for ~609 vocabulary items (~90%
-coverage). The remaining ~64 untranslated items are mostly sentence
+The parser includes English translations for ~611 vocabulary items (~91%
+coverage). The remaining ~62 untranslated items are mostly sentence
 fragments, proper nouns, or residual OCR artifacts that couldn't be decoded.
 
 **For future Claudes**: Expand `translations.json` (a standalone
@@ -97,7 +97,7 @@ to see the current translation count, then rebuild with `build_app.py`.
 The beta Book files have systematic errors: subjoined consonants
 (ར=U+0FB2, ལ=U+0FB3, ཡ=U+0FB1, ཝ=U+0FBA) are missing from the PDF
 content. The parser's `TEXT_CORRECTIONS` list in `parse_textbooks.py`
-fixes these with **86 rules making ~6,200 corrections** across all
+fixes these with **105 rules making ~8,900 corrections** across all
 textbooks.
 
 **How corrections were found**: By comparing the syllable inventory of
@@ -105,6 +105,10 @@ beta Book files against V2 (final) files. A script extracted unique
 syllables from both file sets, then tried inserting each subjoined
 consonant into book-only syllables. If the result existed in V2 files,
 it was a broken→correct pair. This found 60+ systematic patterns.
+Additionally, spurious subjoined RA (U+0FB2) was detected by frequency
+analysis: consonants that never take RA in standard Tibetan get blanket
+removal; consonants that can take RA (མ, ཏ, ཐ, པ) were verified against
+V2 files showing zero legitimate instances → all spurious.
 
 **Correction ordering matters**. `TEXT_CORRECTIONS` is applied
 sequentially via `str.replace()`. The list is organized in phases:
@@ -206,8 +210,8 @@ extracts the most useful ones:
 ### Note: No English in A0-A2
 
 The A0-A2 textbooks are 100% Tibetan immersion. The app must supply
-English translations. The `translations.json` dictionary provides ~609
-translations (~90% coverage). Expand it for better coverage, or use the
+English translations. The `translations.json` dictionary provides ~611
+translations (~91% coverage). Expand it for better coverage, or use the
 Tibetan definitions for immersion-style exercises.
 
 The Passport files (A1-Passport.pdf, A2-Passport.pdf) are bilingual
