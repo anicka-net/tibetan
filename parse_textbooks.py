@@ -156,6 +156,8 @@ TEXT_CORRECTIONS = [
     ('ཁོམ།', 'ཁྲོམ།'),               # market
     # སར → སྐར (subjoined ཀ lost)
     ('སར་མ', 'སྐར་མ'),               # minute
+    # Missing tsheg before blank in fill-in exercise
+    ('འདི་ང______', 'འདི་ང་______'),
 ]
 
 
