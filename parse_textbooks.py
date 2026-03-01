@@ -43,6 +43,16 @@ TEXT_CORRECTIONS = [
     ('་སོད', '་སྤྱོད'),               # ~1500+ (བེད་སྤྱོད, རྒྱུན་སྤྱོད, བརྡ་སྤྱོད...)
     # སད་ཆ → སྐད་ཆ (speech; subjoined ཀ lost)
     ('སད་ཆ', 'སྐད་ཆ'),               # ~240 occurrences
+    # འགོ at word boundary = always འགྲོ (to go; subjoined ར lost)
+    # འགོག (prevent), འགོད (arrange), འགོས (infect) are real — boundary match only
+    ('འགོ་', 'འགྲོ་'),               # ~225 (ང་ཁྲོམ་ལ་འགྲོ་ཡི་ཡིན)
+    ('འགོ།', 'འགྲོ།'),               # ~24 (མཉམ་དུ་འགྲོ།)
+    # གེང = always broken གླེང (discuss; subjoined ལ lost)
+    ('གེང', 'གླེང'),                   # ~600 (གླེང་མོལ = dialogue)
+    # ཁིད = always broken ཁྲིད (lead/teach; subjoined ར lost)
+    ('ཁིད', 'ཁྲིད'),                   # ~25 (སློབ་ཁྲིད = teaching)
+    # འགིམ = always broken འགྲིམ (travel; subjoined ར lost)
+    ('འགིམ', 'འགྲིམ'),               # ~7 (འགྲིམ་འགྲུལ = transportation)
 
     # === Phase 4: Specific compound corrections ===
     # གོག → གློག (subjoined ལ lost) — only safe in electricity compounds,
@@ -52,6 +62,14 @@ TEXT_CORRECTIONS = [
     ('གོག་སྐུད', 'གློག་སྐུད'),       # electric wire
     ('གོག་པར', 'གློག་པར'),           # x-ray / electric photo
     ('གོག་འཕྲིན', 'གློག་འཕྲིན'),     # email
+    # འཚམས་འདི = broken འཚམས་འདྲི (greetings; subjoined ར lost)
+    # འདི alone is real ("this") — only safe in this compound
+    ('འཚམས་འདི', 'འཚམས་འདྲི'),       # greetings (~9)
+    # མགོན = broken མགྲོན (guest; subjoined ར lost) at word boundary
+    # མགོན without ར means "protector" — but in these everyday textbooks
+    # the context is always hotel/guest, never religious protector
+    ('མགོན་', 'མགྲོན་'),             # guest (མགྲོན་ཁང = hotel, མགྲོན་པོ = guest)
+    ('མགོན།', 'མགྲོན།'),             # guest (sentence-final)
     # བསབ → བསླབ (subjoined ལ lost)
     ('བསབས', 'བསླབས'),              # taught (past)
     ('བསབ་', 'བསླབ་'),               # teach
