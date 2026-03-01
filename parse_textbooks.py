@@ -54,6 +54,74 @@ TEXT_CORRECTIONS = [
     # འགིམ = always broken འགྲིམ (travel; subjoined ར lost)
     ('འགིམ', 'འགྲིམ'),               # ~7 (འགྲིམ་འགྲུལ = transportation)
 
+    # --- V2-comparison-derived corrections (subjoined ཡ lost) ---
+    # ཁ/ཕ never take prefixes, so blanket replacement is safe
+    ('ཁེད', 'ཁྱེད'),                   # you (honorific, ~306)
+    ('ཕི', 'ཕྱི'),                     # outside/foreign (~54, also fixes ཕིན→ཕྱིན, ཕིར→ཕྱིར)
+    ('ཕགས', 'ཕྱགས'),                 # broom (~10)
+    ('ཕེད', 'ཕྱེད'),                   # half (~10)
+    ('ཕེ་', 'ཕྱེ་'),                   # to open (~8)
+    ('ཕུགས', 'ཕྱུགས'),               # cattle (~6, not "future" in these textbooks)
+    ('ཁོན', 'ཁྱོན'),                   # altogether (~24)
+    ('ཁད', 'ཁྱད'),                     # difference/special (~18)
+    ('ཁིམ', 'ཁྱིམ'),                   # home/household (~12)
+    ('ཁེལ', 'ཁྲེལ'),                   # shame (~8)
+    ('ཁིམས', 'ཁྲིམས'),               # law (~3)
+    # མཁེན starts with prefix མ — safe (no larger syllable contains it)
+    ('མཁེན', 'མཁྱེན'),               # to know, honorific (~10)
+    # Tsheg-boundary: ཀང can appear in བཀང (filled), so boundary match
+    ('་ཀང', '་ཀྱང'),                 # also/even (~65)
+
+    # --- V2-comparison-derived corrections (subjoined ར lost) ---
+    ('འགིག', 'འགྲིག'),               # OK/suitable (~55)
+    ('འབོག', 'འབྲོག'),               # nomad (~21)
+    ('འཕོད', 'འཕྲོད'),               # health (~15)
+    ('འབི', 'འབྲི'),                   # to write (~15)
+    ('འགམ', 'འགྲམ'),                 # cheek/side (~11)
+    ('འཁབ', 'འཁྲབ'),                 # to act/perform (~9)
+    ('འགེལ', 'འགྲེལ'),               # explanation (~9)
+    ('འབས', 'འབྲས'),                 # result/rice (~8)
+    ('འབིང', 'འབྲིང'),               # middle/average (~8)
+    ('འཕད', 'འཕྲད'),                 # to meet (~6)
+    ('འཁག', 'འཁྱག'),                 # ice (~6)
+    ('འཁིད', 'འཁྲིད'),               # to lead (past, ~4)
+    ('འཁིས', 'འཁྲིས'),               # to wrap (~3)
+    ('འགིགས', 'འགྲིགས'),             # arranged (~3)
+    ('འཕིན', 'འཕྲིན'),               # message (~5)
+    # Tsheg-boundary: དི/དིས appear inside འདི/འདིས
+    ('་དི་', '་དྲི་'),               # smell/question (~212 total, boundary-safe)
+    ('་དི།', '་དྲི།'),               # smell/question (sentence-final)
+    ('་དིས', '་དྲིས'),               # asked (past, ~24)
+    # Tsheg-boundary: འད appears inside many words
+    ('་འད་', '་འདྲ་'),               # similar (~50)
+    ('་འད།', '་འདྲ།'),               # similar (sentence-final)
+    ('འདའི', 'འདྲའི'),               # similar's (genitive, ~3)
+
+    # --- V2-comparison-derived corrections (subjoined ལ lost) ---
+    ('སེབས', 'སླེབས'),               # arrived (~50)
+    ('བཀགས', 'བཀླགས'),               # read, past tense (~26)
+    ('གིང', 'གླིང'),                   # park/island (~21)
+    ('གེན', 'གླེན'),                   # fool (~6)
+    ('རོན', 'རློན'),                   # moist/damp (~4)
+
+    # --- V2-comparison: subjoined ཡ on prefixed syllables ---
+    ('མགོགས', 'མགྱོགས'),             # fast/quick (~38)
+    ('འཁེར', 'འཁྱེར'),               # to carry (~25)
+    ('འཁོལ་བ', 'འཁྱོལ་བ'),           # to wash (~11, compound-safe; འཁོལ=boil is real)
+    ('དབངས', 'དབྱངས'),               # melody/vowel (~9)
+    ('དབིན', 'དབྱིན'),               # English (~9)
+    ('དཔིད', 'དཔྱིད'),               # spring season (~4)
+
+    # --- V2-comparison: misc ---
+    ('བིས', 'བྲིས'),                   # wrote (~16)
+    ('གབས', 'གྲབས'),                 # preparation (~9)
+    ('གགས', 'གྲགས'),                 # fame (~6)
+    ('བེལ', 'བྲེལ'),                   # busy (~6)
+    ('སེད', 'སྲེད'),                   # desire (~5)
+    ('སས', 'སྲས'),                     # son/prince (~13)
+    ('སིན', 'སྲིན'),                   # demon (~20)
+    ('བན', 'བྲན'),                     # servant (~4)
+
     # === Phase 4: Specific compound corrections ===
     # གོག → གློག (subjoined ལ lost) — only safe in electricity compounds,
     # NOT blanket (གོག is also a word for fruit/object in some contexts)
