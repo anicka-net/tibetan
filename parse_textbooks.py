@@ -15,38 +15,60 @@ def read_text(path):
 
 
 # Corrections for systematic PDF text extraction errors.
-# Subjoined consonants (ལ, ར, ཡ etc.) are often lost during PDF-to-text
-# conversion. These are safe compound-word replacements where the wrong
-# form is unambiguously an OCR error.
+# Subjoined consonants (ལ, ར, ཡ, ཝ etc.) are often lost during PDF-to-text
+# conversion. ORDER MATTERS: specific multi-error compounds first, then
+# blanket replacements last to catch remaining instances.
 TEXT_CORRECTIONS = [
-    # སོབ → སློབ (subjoined ལ lost)
-    ('སོབ་ཕྲུག', 'སློབ་ཕྲུག'),   # student
-    ('སོབ་དཔོན', 'སློབ་དཔོན'),   # teacher
-    ('སོབ་ཁིད', 'སློབ་ཁྲིད'),    # teaching
-    ('སོབ་ཚན', 'སློབ་ཚན'),      # lesson
-    ('སོབ་སོང', 'སློབ་སྦྱོང'),    # study (double fix)
-    ('སོབ་གྲྭ', 'སློབ་གྲྭ'),     # school
-    ('སོབ་མ', 'སློབ་མ'),         # student (f)
-    # གོག → གློག (subjoined ལ lost)
-    ('གོག་ཀླད', 'གློག་ཀླད'),     # computer
-    ('གོག་བརྙན', 'གློག་བརྙན'),   # movie
+    # === Phase 1: Multi-error compounds (fix both syllables at once) ===
+    # These must come before blanket replacements that would change only
+    # the first syllable, preventing the compound match from firing.
+    ('སོབ་ཁིད', 'སློབ་ཁྲིད'),       # teaching (སོབ→སློབ + ཁིད→ཁྲིད)
+    ('སོབ་སོང', 'སློབ་སྦྱོང'),       # study (སོབ→སློབ + སོང→སྦྱོང)
+
+    # === Phase 2: Context-dependent སོད corrections ===
+    # ངོ་སྤྲོད and དགའ་སྤྲོད have subjoined ར, not ཡ — different from བེད་སྤྱོད
+    ('ངོ་སོད', 'ངོ་སྤྲོད'),           # introduction (~480 occurrences)
+    ('དགའ་སོད', 'དགའ་སྤྲོད'),         # entertainment/amusement
+
+    # === Phase 2b: Line-initial སོད compounds (no preceding tsheg) ===
+    ('སོད་པ', 'སྤྱོད་པ'),             # behavior/conduct
+    ('སོད་ཆས', 'སྤྱོད་ཆས'),           # equipment/implements
+    ('སོད་བཟང', 'སྤྱོད་བཟང'),         # good behavior
+
+    # === Phase 3: Blanket patterns (high-impact, catch-all) ===
+    # No Tibetan word སོབ exists; always broken སློབ (subjoined ལ lost)
+    ('སོབ', 'སློབ'),                   # ~1100+ remaining after phase 1
+    # སོད after tsheg is always broken སྤྱོད (subjoined པ+ཡ lost);
+    # preserves correct བསོད (merit) and གསོད (kill) which have no tsheg
+    ('་སོད', '་སྤྱོད'),               # ~1500+ (བེད་སྤྱོད, རྒྱུན་སྤྱོད, བརྡ་སྤྱོད...)
+    # སད་ཆ → སྐད་ཆ (speech; subjoined ཀ lost)
+    ('སད་ཆ', 'སྐད་ཆ'),               # ~240 occurrences
+
+    # === Phase 4: Specific compound corrections ===
+    # གོག → གློག (subjoined ལ lost) — only safe in electricity compounds,
+    # NOT blanket (གོག is also a word for fruit/object in some contexts)
+    ('གོག་ཀླད', 'གློག་ཀླད'),         # computer
+    ('གོག་བརྙན', 'གློག་བརྙན'),       # movie
+    ('གོག་སྐུད', 'གློག་སྐུད'),       # electric wire
+    ('གོག་པར', 'གློག་པར'),           # x-ray / electric photo
+    ('གོག་འཕྲིན', 'གློག་འཕྲིན'),     # email
     # བསབ → བསླབ (subjoined ལ lost)
-    ('བསབས', 'བསླབས'),          # taught (past)
-    ('བསབ་', 'བསླབ་'),           # teach
-    # སོང → སྦྱོང (subjoined བ+ཡ lost)
-    ('སོང་བརྡར', 'སྦྱོང་བརྡར'),   # practice
+    ('བསབས', 'བསླབས'),              # taught (past)
+    ('བསབ་', 'བསླབ་'),               # teach
+    # སོང → སྦྱོང (subjoined བ+ཡ lost) — only safe in practice compound
+    ('སོང་བརྡར', 'སྦྱོང་བརྡར'),       # practice
     # བསར → བསྐྱར (subjoined ཀ+ཡ lost)
-    ('བསར་ཟོས', 'བསྐྱར་ཟོས'),    # revision
+    ('བསར་ཟོས', 'བསྐྱར་ཟོས'),        # revision
     # གོགས → གྲོགས (subjoined ར lost)
-    ('གོགས་པོ', 'གྲོགས་པོ'),     # male friend
-    ('གོགས་མོ', 'གྲོགས་མོ'),     # female friend
+    ('གོགས་པོ', 'གྲོགས་པོ'),         # male friend
+    ('གོགས་མོ', 'གྲོགས་མོ'),         # female friend
     # སིད → སྐྱིད (subjoined ཀ+ཡ lost)
-    ('སིད་པོ', 'སྐྱིད་པོ'),       # happy
+    ('སིད་པོ', 'སྐྱིད་པོ'),           # happy
     # ཁོམ → ཁྲོམ (subjoined ར lost)
-    ('ཁོམ་ལ', 'ཁྲོམ་ལ'),         # to market
-    ('ཁོམ།', 'ཁྲོམ།'),           # market
+    ('ཁོམ་ལ', 'ཁྲོམ་ལ'),             # to market
+    ('ཁོམ།', 'ཁྲོམ།'),               # market
     # སར → སྐར (subjoined ཀ lost)
-    ('སར་མ', 'སྐར་མ'),           # minute
+    ('སར་མ', 'སྐར་མ'),               # minute
 ]
 
 
@@ -218,7 +240,7 @@ def extract_fill_blanks(lines):
             continue
 
         # Skip instruction/example lines
-        if 'དམིགས' in stripped or 'བེད་སོ' in stripped:
+        if 'དམིགས' in stripped or 'བེད་སྤྱོད' in stripped:
             continue
         # Skip example lines (དཔེར་ན = "for example")
         if stripped.startswith('དཔེར་ན'):
@@ -241,7 +263,7 @@ def extract_fill_blanks(lines):
 
         # Word bank line: multiple short words separated by shad on a single line
         # This can appear before exercises OR between exercise groups
-        if ('དམིགས' not in stripped) and ('བེད་སོ' not in stripped) and '_' not in stripped:
+        if ('དམིགས' not in stripped) and ('བེད་སྤྱོད' not in stripped) and '_' not in stripped:
             parts = [w.strip() for w in stripped.split('།') if w.strip()]
             if len(parts) >= 3 and all(len(p) <= 20 for p in parts):
                 # If we had pending particles, they become a word bank
