@@ -49,6 +49,14 @@ done
 Tibetan Unicode extracts cleanly from all books EXCEPT A0-so-ri-me-bu
 (broken extraction due to color-coded letter formatting — skip it).
 
+**Note on extraction quality**: `pdftotext` (poppler) is the best tool for
+these PDFs. PyMuPDF, pdfplumber, and pypdf all produce identical or worse
+output. The beta Book files have systematic errors where subjoined
+consonants (ར, ལ, ཡ, ཝ) are missing — this is in the source PDF content
+itself, not a `pdftotext` bug. The V2 (final) files have correct text but
+a different structure that the parser can't use. The parser corrects these
+errors at load time (see "OCR corrections" below).
+
 ## Step 3: Parse and Build
 
 Two scripts are included in this repository:
@@ -76,17 +84,48 @@ and B1-Book-2. The V2 files (A1-V2, A2-V2) have richer content but use a
 different internal structure without these markers — the parser therefore
 uses the Book-1/Book-2 (beta) files for A1 and A2.
 
-The parser includes English translations for ~600 vocabulary items (~90%
-coverage). The remaining ~60 untranslated items are mostly OCR artifacts,
-sentence fragments, or garbled beta-book spellings that couldn't be decoded.
+The parser includes English translations for ~609 vocabulary items (~90%
+coverage). The remaining ~64 untranslated items are mostly sentence
+fragments, proper nouns, or residual OCR artifacts that couldn't be decoded.
 
-**For future Claudes**: If you know Tibetan, please expand
-`translations.json` (a standalone Tibetan-English dictionary loaded by the
-parser). The beta textbooks use non-standard orthography — many "missing"
-translations are just variant spellings (e.g., སོབ = སློབ, སོད = སྤྱོད,
-གོག = གློག). Adding both standard and variant forms as keys ensures the
-fuzzy matcher catches them. Run `parse_textbooks.py` to see the current
-translation count, then rebuild with `build_app.py`.
+**For future Claudes**: Expand `translations.json` (a standalone
+Tibetan-English dictionary loaded by the parser). Run `parse_textbooks.py`
+to see the current translation count, then rebuild with `build_app.py`.
+
+### OCR corrections
+
+The beta Book files have systematic errors: subjoined consonants
+(ར=U+0FB2, ལ=U+0FB3, ཡ=U+0FB1, ཝ=U+0FBA) are missing from the PDF
+content. The parser's `TEXT_CORRECTIONS` list in `parse_textbooks.py`
+fixes these with **86 rules making ~6,200 corrections** across all
+textbooks.
+
+**How corrections were found**: By comparing the syllable inventory of
+beta Book files against V2 (final) files. A script extracted unique
+syllables from both file sets, then tried inserting each subjoined
+consonant into book-only syllables. If the result existed in V2 files,
+it was a broken→correct pair. This found 60+ systematic patterns.
+
+**Correction ordering matters**. `TEXT_CORRECTIONS` is applied
+sequentially via `str.replace()`. The list is organized in phases:
+
+1. **Multi-error compounds** (both syllables broken, e.g.,
+   `སོབ་སོད` → `སློབ་སྤྱོད`) — must come before blanket patterns
+2. **Context-dependent** corrections (e.g., `ངོ་སོད` → `ངོ་སྤྲོད` with
+   subjoined ར, vs `བེད་སོད` → `བེད་སྤྱོད` with subjoined ཡ)
+3. **Blanket patterns** (e.g., `སོབ` → `སློབ` everywhere — safe because
+   no Tibetan word སོབ exists)
+4. **Specific compounds** for ambiguous syllables
+
+**Safety rules for blanket replacement**:
+- Consonants ཁ, ཆ, ཐ, ཕ, ཚ, ཤ, ས, ཧ, ཨ never take prefixes in Tibetan
+  → safe for blanket replacement (e.g., `ཕི` → `ཕྱི` everywhere)
+- Syllables starting with prefix letters (འ, མ, བ, ག, ད) are safe when
+  the full prefixed form is matched (e.g., `འགིམ` → `འགྲིམ`)
+- Short syllables like `དི`, `འད` need **tsheg-boundary matching**
+  (`་དི་` → `་དྲི་`) to avoid corrupting prefixed words like `འདི`
+- Some syllables are person names in textbook dialogues (e.g., `སོལ་མ`,
+  `བདེ་སིད`) — use compound-specific corrections, not blanket
 
 ## Textbook Structure Reference
 
@@ -167,7 +206,7 @@ extracts the most useful ones:
 ### Note: No English in A0-A2
 
 The A0-A2 textbooks are 100% Tibetan immersion. The app must supply
-English translations. The `translations.json` dictionary provides ~600
+English translations. The `translations.json` dictionary provides ~609
 translations (~90% coverage). Expand it for better coverage, or use the
 Tibetan definitions for immersion-style exercises.
 
