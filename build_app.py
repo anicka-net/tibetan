@@ -1202,13 +1202,24 @@ function handleMatch(el) {{
   const side = el.dataset.side;
   const id = el.dataset.id;
 
-  if (el.classList.contains('matched')) return;
+  if (el.classList.contains('matched') || el.classList.contains('wrong')) return;
 
   if (side === 'bo') {{
+    // Tap same button again to deselect
+    if (ms.selectedBo && ms.selectedBo.el === el) {{
+      el.classList.remove('selected');
+      ms.selectedBo = null;
+      return;
+    }}
     document.querySelectorAll('.match-btn[data-side="bo"]').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     ms.selectedBo = {{ el, id }};
   }} else {{
+    if (ms.selectedEn && ms.selectedEn.el === el) {{
+      el.classList.remove('selected');
+      ms.selectedEn = null;
+      return;
+    }}
     document.querySelectorAll('.match-btn[data-side="en"]').forEach(b => b.classList.remove('selected'));
     el.classList.add('selected');
     ms.selectedEn = {{ el, id }};
@@ -1225,12 +1236,14 @@ function handleMatch(el) {{
       state.total++;
       state.xp += 10;
     }} else {{
-      ms.selectedBo.el.classList.add('wrong');
-      ms.selectedEn.el.classList.add('wrong');
+      const boEl = ms.selectedBo.el;
+      const enEl = ms.selectedEn.el;
+      boEl.classList.add('wrong');
+      enEl.classList.add('wrong');
       state.total++;
       setTimeout(() => {{
-        ms.selectedBo.el.classList.remove('wrong', 'selected');
-        ms.selectedEn.el.classList.remove('wrong', 'selected');
+        boEl.classList.remove('wrong', 'selected');
+        enEl.classList.remove('wrong', 'selected');
       }}, 500);
     }}
     ms.selectedBo = null;
