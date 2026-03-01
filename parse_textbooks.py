@@ -38,9 +38,32 @@ TEXT_CORRECTIONS = [
     # === Phase 3: Blanket patterns (high-impact, catch-all) ===
     # U+0F48 (཈) is unassigned in Unicode; always broken ཉ (U+0F49)
     ('\u0F48', 'ཉ'),                   # ~339 occurrences (renders as □ box)
+    # Spurious subjoined consonants: BA first, then RA, then YA.
+    # Order matters: text can have stacked spurious chars (e.g. ན+ྦ+ྱ+ོ).
+    # Removing BA first lets the RA/YA passes clean up what's underneath.
+    #
+    # Spurious subjoined BA (U+0FA6) after consonants that NEVER take it (~80)
+    # Valid ྦ only after ས (སྦྱོང) and ར (རྦད = suddenly). All others zero in V2.
+    ('ག\u0FA6', 'ག'),                 # ~18
+    ('ཡ\u0FA6', 'ཡ'),                 # ~13
+    ('པ\u0FA6', 'པ'),                 # ~11
+    ('ད\u0FA6', 'ད'),                 # ~4
+    ('ཅ\u0FA6', 'ཅ'),                 # ~4
+    ('ཁ\u0FA6', 'ཁ'),                 # ~3
+    ('ན\u0FA6', 'ན'),                 # ~3
+    ('ཕ\u0FA6', 'ཕ'),                 # ~3
+    ('མ\u0FA6', 'མ'),                 # ~3
+    ('ཞ\u0FA6', 'ཞ'),                 # ~3
+    ('ལ\u0FA6', 'ལ'),                 # ~3
+    ('ཀ\u0FA6', 'ཀ'),                 # ~2
+    ('ཟ\u0FA6', 'ཟ'),                 # ~2
+    ('འ\u0FA6', 'འ'),                 # ~2
+    ('ཤ\u0FA6', 'ཤ'),                 # ~2
+    ('ང\u0FA6', 'ང'),                 # ~1
+    ('ཆ\u0FA6', 'ཆ'),                 # ~1
+    ('ཏ\u0FA6', 'ཏ'),                 # ~1
+    ('བ\u0FA6', 'བ'),                 # ~1
     # Spurious subjoined RA (U+0FB2) after consonants that NEVER take it (~313)
-    # These consonants cannot have subjoined RA in standard Tibetan;
-    # the RA was spuriously inserted during PDF text extraction.
     ('ཡ\u0FB2', 'ཡ'),                 # ~111 (ཡྲོད→ཡོད, ཡྲིན→ཡིན, etc.)
     ('ཆ\u0FB2', 'ཆ'),                 # ~44 (ཆྲོས→ཆོས, ཆྲེན→ཆེན, etc.)
     ('འ\u0FB2', 'འ'),                 # ~39 (འྲི→འི, པའྲི→པའི, etc.)
@@ -54,17 +77,13 @@ TEXT_CORRECTIONS = [
     ('ང\u0FB2', 'ང'),                 # ~3
     ('ཟ\u0FB2', 'ཟ'),                 # ~2
     ('ཇ\u0FB2', 'ཇ'),                 # ~1
-    # མ CAN take subjoined RA (མྲོ = divination) but V2 files have zero
-    # མྲ instances — all ~42 in Book files are spurious (མྲི→མི, མྲོག→མོག, etc.)
+    # མ,ཏ,ཐ,པ CAN take subjoined RA but V2 files have zero instances → all spurious.
     ('མ\u0FB2', 'མ'),                 # ~42 (མྲི→མི, དམྲིགས→དམིགས, མྲོག→མོག)
-    # ཏ, ཐ, པ CAN take subjoined RA but V2 files have zero instances —
-    # all occurrences in Book files are spurious PDF extraction artifacts.
     ('ཏ\u0FB2', 'ཏ'),                 # ~22 (ཏྲོག→ཏོག, མེ་ཏྲོག→མེ་ཏོག, གཏྲོང→གཏོང)
     ('ཐ\u0FB2', 'ཐ'),                 # ~6 (མཐྲོ→མཐོ, མཐྲོང→མཐོང, ཐྲོབ→ཐོབ)
     ('པ\u0FB2', 'པ'),                 # ~65 (པྲོ→པོ everywhere)
     # Spurious subjoined YA (U+0FB1) after consonants that NEVER take it (~2455)
-    # Same extraction bug as subjoined RA. Valid ྱ only on: ཀ,ཁ,ག,པ,ཕ,བ,མ.
-    # All others have zero instances in V2 files → safe blanket removal.
+    # Valid ྱ only on: ཀ,ཁ,ག,པ,ཕ,བ,མ. All others zero in V2.
     ('ར\u0FB1', 'ར'),                 # ~947 (རྱོད→རོད, རྱེད→རེད, etc.)
     ('ད\u0FB1', 'ད'),                 # ~361 (དྱེ→དེ, དྱོན→དོན, etc.)
     ('ཡ\u0FB1', 'ཡ'),                 # ~226 (ཡྱོད→ཡོད, ཡྱིན→ཡིན, etc.)
