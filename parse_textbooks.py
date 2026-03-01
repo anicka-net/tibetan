@@ -156,8 +156,6 @@ TEXT_CORRECTIONS = [
     ('ཁོམ།', 'ཁྲོམ།'),               # market
     # སར → སྐར (subjoined ཀ lost)
     ('སར་མ', 'སྐར་མ'),               # minute
-    # Missing tsheg before blank in fill-in exercise
-    ('འདི་ང______', 'འདི་ང་______'),
 ]
 
 
@@ -378,30 +376,56 @@ def extract_fill_blanks(lines):
 def _get_suffix_letter(text_before_blank):
     """Extract the Tibetan suffix letter from the syllable immediately before a blank.
 
-    Returns the final consonant (suffix) of the last syllable before the blank,
-    which determines the correct particle form. Returns None if no valid
-    Tibetan consonant is found.
+    Returns the suffix consonant of the last syllable before the blank,
+    which determines the correct particle form. Returns None for vowel-final
+    syllables (no suffix).
+
+    Tibetan syllable structure: [prefix] + root + [subjoined] + [vowel] + [suffix] + [post-suffix]
+    - Vowel signs attach to the root consonant
+    - Suffix comes after the vowel
+    - Single-consonant syllables (like ང "I") are vowel-final (inherent 'a')
+    - Syllables ending with a vowel sign on the last consonant (like གཞི, དེ) are vowel-final
     """
     # Strip trailing tsheg, spaces, shad
     text = text_before_blank.rstrip(' \t།་')
     if not text:
         return None
 
-    # Walk backwards to find the last Tibetan consonant
-    # Tibetan consonants: U+0F40 to U+0F6A
-    # Vowel signs: U+0F72 (i), U+0F74 (u), U+0F7A (e), U+0F7C (o), U+0F71 (aa)
-    # We skip vowel signs to get the consonant they attach to
-    for ch in reversed(text):
+    # Extract last syllable (after last tsheg)
+    last_tsheg = text.rfind('་')
+    last_syllable = text[last_tsheg + 1:] if last_tsheg >= 0 else text
+
+    # Parse the syllable: find base consonants and vowel sign positions
+    # Base consonants: U+0F40-0F6A, Subjoined: U+0F90-0FBC (skip these)
+    # Vowel signs: U+0F71 (aa), U+0F72 (i), U+0F74 (u), U+0F7A (e), U+0F7C (o)
+    VOWEL_SIGNS = {0x0F71, 0x0F72, 0x0F74, 0x0F7A, 0x0F7C}
+    base_consonants = []
+    last_vowel_pos = -1
+    for i, ch in enumerate(last_syllable):
         cp = ord(ch)
-        # Skip vowel signs
-        if cp in (0x0F71, 0x0F72, 0x0F74, 0x0F7A, 0x0F7C):
-            continue
-        # Tibetan consonant
         if 0x0F40 <= cp <= 0x0F6A:
-            return ch
-        # If we hit anything else (punctuation, space, etc.), stop
-        break
-    return None
+            base_consonants.append((i, ch))
+        elif cp in VOWEL_SIGNS:
+            last_vowel_pos = i
+
+    if not base_consonants:
+        return None
+
+    # Single base consonant: it's the root, no suffix (vowel-final)
+    # e.g., ང (I/me), ག, ད
+    if len(base_consonants) == 1:
+        return None
+
+    # Multiple base consonants: check if the last one is a suffix
+    # In Tibetan, vowel signs go on the root. If the last consonant has a
+    # vowel sign after it, it's still the root (no suffix follows).
+    # e.g., གཞི has vowel ི after ཞ (last consonant) → vowel-final
+    # e.g., བོད has vowel ོ after བ, then ད → ད is the suffix
+    last_cons_idx = base_consonants[-1][0]
+    if last_vowel_pos > last_cons_idx:
+        return None  # vowel after last consonant → it's the root, no suffix
+
+    return base_consonants[-1][1]
 
 
 # Particle rules: suffix letter -> correct particle
@@ -414,8 +438,8 @@ GENITIVE_RULES = {
     'ང': 'གི',
     # After ན མ ར ལ -> གྱི
     'ན': 'གྱི', 'མ': 'གྱི', 'ར': 'གྱི', 'ལ': 'གྱི',
-    # After vowel (no suffix) -> འི or ཡི
-    None: 'ཡི',
+    # After vowel (no suffix) -> འི (standard form; ཡི also valid)
+    None: 'འི',
 }
 
 AGENTIVE_RULES = {
