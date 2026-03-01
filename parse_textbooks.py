@@ -54,6 +54,9 @@ TEXT_CORRECTIONS = [
     ('ང\u0FB2', 'ང'),                 # ~3
     ('ཟ\u0FB2', 'ཟ'),                 # ~2
     ('ཇ\u0FB2', 'ཇ'),                 # ~1
+    # མ CAN take subjoined RA (མྲོ = divination) but V2 files have zero
+    # མྲ instances — all ~42 in Book files are spurious (མྲི→མི, མྲོག→མོག, etc.)
+    ('མ\u0FB2', 'མ'),                 # ~42 (མྲི→མི, དམྲིགས→དམིགས, མྲོག→མོག)
     # No Tibetan word སོབ exists; always broken སློབ (subjoined ལ lost)
     ('སོབ', 'སློབ'),                   # ~1100+ remaining after phase 1
     # སོད after tsheg is always broken སྤྱོད (subjoined པ+ཡ lost);
