@@ -55,7 +55,8 @@ TEXT_CORRECTIONS = [
     ('འགིམ', 'འགྲིམ'),               # ~7 (འགྲིམ་འགྲུལ = transportation)
 
     # --- V2-comparison-derived corrections (subjoined ཡ lost) ---
-    # ཁ/ཕ never take prefixes, so blanket replacement is safe
+    # ཀ/ཁ/ཕ never take prefixes, so blanket replacement is safe
+    ('ཀི', 'ཀྱི'),                     # genitive/agentive particle (~1500, also fixes ཀིས→ཀྱིས, ཀིན→ཀྱིན)
     ('ཁེད', 'ཁྱེད'),                   # you (honorific, ~306)
     ('ཕི', 'ཕྱི'),                     # outside/foreign (~54, also fixes ཕིན→ཕྱིན, ཕིར→ཕྱིར)
     ('ཕགས', 'ཕྱགས'),                 # broom (~10)
@@ -405,9 +406,9 @@ def _get_suffix_letter(text_before_blank):
 # Based on standard Tibetan grammar (བྱ་ཚིག་གི་སྒྲ་སྦྱོར།)
 
 GENITIVE_RULES = {
-    # After ག ད བ ས -> གི
-    'ག': 'གི', 'ད': 'གི', 'བ': 'གི', 'ས': 'གི',
-    # After ང -> གི (some texts use གྱི)
+    # After ག ད བ ས -> ཀྱི
+    'ག': 'ཀྱི', 'ད': 'ཀྱི', 'བ': 'ཀྱི', 'ས': 'ཀྱི',
+    # After ང -> གི
     'ང': 'གི',
     # After ན མ ར ལ -> གྱི
     'ན': 'གྱི', 'མ': 'གྱི', 'ར': 'གྱི', 'ལ': 'གྱི',
@@ -416,8 +417,8 @@ GENITIVE_RULES = {
 }
 
 AGENTIVE_RULES = {
-    # After ག ད བ ས -> གིས
-    'ག': 'གིས', 'ད': 'གིས', 'བ': 'གིས', 'ས': 'གིས',
+    # After ག ད བ ས -> ཀྱིས
+    'ག': 'ཀྱིས', 'ད': 'ཀྱིས', 'བ': 'ཀྱིས', 'ས': 'ཀྱིས',
     # After ང -> གིས
     'ང': 'གིས',
     # After ན མ ར ལ -> གྱིས
@@ -429,7 +430,7 @@ AGENTIVE_RULES = {
 LOCATIVE_RULES = {
     # After ག བ -> ཏུ
     'ག': 'ཏུ', 'བ': 'ཏུ',
-    # After ད ས -> དུ
+    # After ད -> དུ, after ས -> སུ
     'ད': 'དུ', 'ས': 'སུ',
     # After ང ན མ ར ལ -> དུ
     'ང': 'དུ', 'ན': 'དུ', 'མ': 'དུ', 'ར': 'དུ', 'ལ': 'དུ',
@@ -454,7 +455,7 @@ PARTICLE_SETS = {
 
 # Known particles by type (for detecting particle word banks)
 KNOWN_PARTICLES = {
-    'genitive': {'གི', 'གྱི', 'ཀྱི', 'འི', 'ཡི', 'ཀི'},
+    'genitive': {'གི', 'གྱི', 'ཀྱི', 'འི', 'ཡི'},
     'agentive': {'གིས', 'གྱིས', 'ཀྱིས', 'ས', 'ཡིས', 'ཡྱིས', 'པྨོས', 'སུས'},
     'locative': {'དུ', 'ཏུ', 'སུ', 'རུ', 'ར', 'ན'},
 }
