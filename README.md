@@ -34,8 +34,10 @@ sudo apt install poppler-utils     # Debian/Ubuntu
 ```bash
 git clone https://github.com/anicka-net/tibetan.git
 cd tibetan
-./build.sh
+python3 build.py        # Linux / macOS / Windows
 ```
+
+Or on Linux/macOS: `./build.sh`
 
 That's it. The script downloads the PDFs, extracts text, parses lessons,
 and generates a single `index.html` you can open in any browser.
@@ -76,7 +78,8 @@ spellings as separate entries (e.g., `སོབ` = `སློབ`, `སོད` =
 
 | File | Purpose | Contains textbook content? |
 |------|---------|--------------------------|
-| `build.sh` | One-command build script | No |
+| `build.py` | Cross-platform build script (Python) | No |
+| `build.sh` | Build script (Linux/macOS) | No |
 | `translations.json` | Tibetan-English dictionary | No (independent translations) |
 | `parse_textbooks.py` | Extracts lesson data from text files | No (parsing logic only) |
 | `build_app.py` | Generates the HTML app | No (HTML/CSS/JS template) |
