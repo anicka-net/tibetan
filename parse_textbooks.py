@@ -36,6 +36,8 @@ TEXT_CORRECTIONS = [
     ('སོད་བཟང', 'སྤྱོད་བཟང'),         # good behavior
 
     # === Phase 3: Blanket patterns (high-impact, catch-all) ===
+    # U+0F48 (཈) is unassigned in Unicode; always broken ཉ (U+0F49)
+    ('\u0F48', 'ཉ'),                   # ~339 occurrences (renders as □ box)
     # No Tibetan word སོབ exists; always broken སློབ (subjoined ལ lost)
     ('སོབ', 'སློབ'),                   # ~1100+ remaining after phase 1
     # སོད after tsheg is always broken སྤྱོད (subjoined པ+ཡ lost);
