@@ -616,6 +616,28 @@ def generate_particle_answers(fill_blanks, grammar=None):
 
         rules = PARTICLE_SETS[ptype]
 
+        # Fix OCR errors in word bank: duplicate particles from lost subjoined ཡ.
+        # E.g., genitive bank has གི twice (should be གི + གྱི).
+        _particle_dedup_fixes = {
+            'genitive': ('གི', 'གྱི'),
+            'agentive': ('གིས', 'གྱིས'),
+        }
+        if ptype in _particle_dedup_fixes:
+            orig, replacement = _particle_dedup_fixes[ptype]
+            count = word_bank.count(orig)
+            if count >= 2 and replacement not in word_bank:
+                # Replace the SECOND occurrence with the correct particle
+                found_first = False
+                for j in range(len(word_bank)):
+                    if word_bank[j] == orig:
+                        if found_first:
+                            word_bank[j] = replacement
+                            break
+                        found_first = True
+                # Update the exercises to use the fixed word bank
+                for idx in indices:
+                    fill_blanks[idx]['word_bank'] = word_bank[:]
+
         # If word bank count == exercise count, use as ordered answers
         use_ordered = len(word_bank) == len(indices)
 

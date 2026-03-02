@@ -1306,7 +1306,11 @@ function selectFillAnswer(el, value) {{
     blank.style.borderBottom = '2px solid var(--green)';
   }}
 
-  setButton('check');
+  // Only show check button for scored exercises (with answer)
+  const ex = state.exercises[state.currentEx];
+  if (ex && ex.correct) {{
+    setButton('check');
+  }}
 }}
 
 function renderDialogueRead(container, dialogue) {{
