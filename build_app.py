@@ -1287,8 +1287,8 @@ function renderFillPractice(container, data) {{
     ex.correct = data.answer;
     setButton('check', true);
   }} else {{
-    // Practice mode: continue button, but word bank is still tappable
-    setButton('continue');
+    // Practice mode: disable continue until user picks a word
+    setButton('check', true);
   }}
 }}
 
@@ -1306,10 +1306,12 @@ function selectFillAnswer(el, value) {{
     blank.style.borderBottom = '2px solid var(--green)';
   }}
 
-  // Only show check button for scored exercises (with answer)
+  // Scored exercises: enable check button. Practice: show continue.
   const ex = state.exercises[state.currentEx];
   if (ex && ex.correct) {{
     setButton('check');
+  }} else {{
+    setButton('continue');
   }}
 }}
 
