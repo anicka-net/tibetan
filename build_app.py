@@ -983,8 +983,8 @@ function generateExercises(lesson) {{
   // Vocab with Tibetan definitions
   const vocabWithDef = vocab.filter(v => v.defBo);
 
-  // 1. Vocab flashcards (max 8)
-  const flashcardVocab = shuffle(vocab).slice(0, 8);
+  // 1. Vocab flashcards (max 8) — skip items with no English translation (garbled OCR)
+  const flashcardVocab = shuffle(vocab.filter(v => v.en)).slice(0, 8);
   for (const v of flashcardVocab) {{
     exercises.push({{ type: 'flashcard', data: v }});
   }}

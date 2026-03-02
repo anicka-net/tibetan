@@ -47,7 +47,7 @@ and generates a single `index.html` you can open in any browser.
 A single `index.html` file (~370 KB) containing:
 
 - **76 sub-lessons** across 3 CEFR levels (A1 through B1)
-- **673 vocabulary items** with Tibetan definitions (612 with English translations)
+- **673 vocabulary items** with Tibetan definitions (658 with English translations)
 - **706 fill-in-the-blank exercises** from the textbooks
 - **199 common phrases**, **59 proverbs**, **37 dialogue turns**
 - Flashcards, multiple choice, matching, fill-in-the-blank practice
@@ -57,7 +57,7 @@ A single `index.html` file (~370 KB) containing:
 ## Contributing translations
 
 Translations live in `translations.json` — a standalone Tibetan-English
-dictionary covering ~91% of vocabulary. It's just JSON key-value pairs:
+dictionary covering ~98% of vocabulary. It's just JSON key-value pairs:
 
 ```json
 "བོད་སྐད": "Tibetan language",

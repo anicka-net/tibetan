@@ -84,9 +84,10 @@ and B1-Book-2. The V2 files (A1-V2, A2-V2) have richer content but use a
 different internal structure without these markers — the parser therefore
 uses the Book-1/Book-2 (beta) files for A1 and A2.
 
-The parser includes English translations for ~611 vocabulary items (~91%
-coverage). The remaining ~62 untranslated items are mostly sentence
-fragments, proper nouns, or residual OCR artifacts that couldn't be decoded.
+The parser includes English translations for ~658 vocabulary items (~98%
+coverage). The remaining ~15 untranslated items are garbled OCR artifacts
+or sentence fragments that couldn't be decoded. These are hidden from
+flashcards in the app.
 
 **For future Claudes**: Expand `translations.json` (a standalone
 Tibetan-English dictionary loaded by the parser). Run `parse_textbooks.py`
@@ -210,9 +211,9 @@ extracts the most useful ones:
 ### Note: No English in A0-A2
 
 The A0-A2 textbooks are 100% Tibetan immersion. The app must supply
-English translations. The `translations.json` dictionary provides ~611
-translations (~91% coverage). Expand it for better coverage, or use the
-Tibetan definitions for immersion-style exercises.
+English translations. The `translations.json` dictionary provides ~658
+translations (~98% coverage). The remaining ~15 items are unrecoverable
+OCR artifacts hidden from flashcards.
 
 The Passport files (A1-Passport.pdf, A2-Passport.pdf) are bilingual
 Tibetan/English and useful as translation references.
