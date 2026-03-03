@@ -1052,9 +1052,7 @@ function generateExercises(lesson) {{
   // 5. Fill-in-blank from textbook
   const validBlanks = fillBlanks.filter(fb => fb.sentence && fb.sentence.includes('_'));
   // Prioritize exercises with answers (interactive particle exercises)
-  const answerable = validBlanks.filter(fb => fb.answer);
-  const practiceOnly = validBlanks.filter(fb => !fb.answer);
-  const selectedBlanks = [...shuffle(answerable), ...shuffle(practiceOnly).slice(0, Math.max(0, 5 - answerable.length))].slice(0, 5);
+  const selectedBlanks = shuffle(validBlanks.filter(fb => fb.answer)).slice(0, 5);
   for (const fb of selectedBlanks) {{
     exercises.push({{ type: 'fill_practice', data: fb }});
   }}
