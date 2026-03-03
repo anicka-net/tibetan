@@ -19,6 +19,18 @@ def read_text(path):
 # conversion. ORDER MATTERS: specific multi-error compounds first, then
 # blanket replacements last to catch remaining instances.
 TEXT_CORRECTIONS = [
+    # === Phase 0: Broken vowel signs (space inserted before vowel) ===
+    # pdftotext sometimes separates a consonant from its vowel sign with a space
+    ('ཤ ོ', 'ཤོ'),                     # ~32 (ཤ ོག→ཤོག, etc.)
+    ('ག ོ', 'གོ'),                     # ~24 (ག ོན→གོན, etc.)
+    ('ཤ ེ', 'ཤེ'),                     # ~21 (ཤ ེས→ཤེས, etc.)
+    ('ཤ ི', 'ཤི'),                     # ~19 (ཤ ིང→ཤིང, etc.)
+    ('འ ོ', 'འོ'),                     # ~10
+    ('འ ི', 'འི'),                     # ~2
+    ('འ ེ', 'འེ'),                     # ~1
+    ('མ ི', 'མི'),                     # ~1
+    ('ས ོ', 'སོ'),                     # ~1
+
     # === Phase 1: Multi-error compounds (fix both syllables at once) ===
     # These must come before blanket replacements that would change only
     # the first syllable, preventing the compound match from firing.
