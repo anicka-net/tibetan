@@ -47,8 +47,8 @@ and generates a single `index.html` you can open in any browser.
 A single `index.html` file (~377 KB) containing:
 
 - **76 sub-lessons** across 3 CEFR levels (A1 through B1)
-- **662 vocabulary items** with Tibetan definitions (653 with English translations)
-- **637 fill-in-the-blank exercises** with answers
+- **662 vocabulary items** with Tibetan definitions (650 with English translations)
+- **636 fill-in-the-blank exercises** with answers
 - **199 common phrases**, **59 proverbs**, **37 dialogue turns**
 - Flashcards, multiple choice, matching, fill-in-the-blank practice
 - Progress tracking, streaks, and XP (localStorage)

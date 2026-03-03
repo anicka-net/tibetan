@@ -869,7 +869,8 @@ def parse_book(text, level, use_sub=True):
             'phrases': phrases,
             'dialogue': dialogue,
             'proverb': proverb,
-            'fillBlanks': [fb for fb in fill_blanks if fb.get('answer')],
+            'fillBlanks': [fb for fb in fill_blanks if fb.get('answer')
+                          and 'སློབ་སི' not in fb.get('sentence', '')],
         })
 
     return lessons
