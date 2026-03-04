@@ -1050,11 +1050,10 @@ function generateExercises(lesson) {{
   }}
 
   // 5. Fill-in-blank from textbook
-  const validBlanks = fillBlanks.filter(fb => fb.sentence && fb.sentence.includes('_'));
-  // Prioritize exercises with answers (interactive particle exercises)
-  const selectedBlanks = shuffle(validBlanks.filter(fb => fb.answer)).slice(0, 5);
+  const validBlanks = fillBlanks.filter(fb => fb.sentence && fb.sentence.includes('_') && fb.answer);
+  const selectedBlanks = shuffle(validBlanks).slice(0, 5);
   for (const fb of selectedBlanks) {{
-    exercises.push({{ type: 'fill_practice', data: fb }});
+    exercises.push({{ type: 'fill_blank', data: fb }});
   }}
 
   // 6. Dialogue reading (if available)
@@ -1096,7 +1095,7 @@ function renderExercise() {{
     case 'mc_en_bo': renderMC(container, ex, 'en_bo'); break;
     case 'mc_bo_def': renderMC(container, ex, 'bo_def'); break;
     case 'match': renderMatch(container, ex); break;
-    case 'fill_practice': renderFillPractice(container, ex.data); break;
+    case 'fill_blank': renderFillBlank(container, ex.data); break;
     case 'dialogue_read': renderDialogueRead(container, ex.data); break;
   }}
 }}
@@ -1253,14 +1252,13 @@ function handleMatch(el) {{
   }}
 }}
 
-function renderFillPractice(container, data) {{
-  const hasAnswer = !!data.answer;
+function renderFillBlank(container, data) {{
   const sentence = data.sentence.replace(/_+/g, '<span class="blank-slot" id="fillBlank">___</span>');
   const wordBank = data.word_bank || [];
 
   const chipHtml = wordBank.length > 0 ? `
     <div style="font-size:13px;color:var(--gray);font-family:sans-serif;margin-bottom:8px;">
-      ${{hasAnswer ? 'Tap the correct particle:' : 'Tap a word to fill the blank:'}}
+      Tap a word to fill the blank:
     </div>
     <div class="word-bank animate-in">
       ${{[...new Set(wordBank)].map(w => {{
@@ -1271,7 +1269,7 @@ function renderFillPractice(container, data) {{
   ` : '';
 
   container.innerHTML = `
-    <div class="exercise-prompt animate-in">${{hasAnswer ? 'Fill in the blank' : 'Fill in the blank (practice)'}}</div>
+    <div class="exercise-prompt animate-in">Fill in the blank</div>
     <div class="sentence-box animate-in" id="sentenceBox">${{sentence}}</div>
     ${{chipHtml}}
   `;
@@ -1279,15 +1277,9 @@ function renderFillPractice(container, data) {{
   state.selectedAnswer = null;
   state.checked = false;
 
-  if (hasAnswer) {{
-    // Scored mode: store correct answer for handleCheck
-    const ex = state.exercises[state.currentEx];
-    ex.correct = data.answer;
-    setButton('check', true);
-  }} else {{
-    // Practice mode: disable continue until user picks a word
-    setButton('check', true);
-  }}
+  const ex = state.exercises[state.currentEx];
+  ex.correct = data.answer;
+  setButton('check', true);
 }}
 
 function selectFillAnswer(el, value) {{
@@ -1304,13 +1296,8 @@ function selectFillAnswer(el, value) {{
     blank.style.borderBottom = '2px solid var(--green)';
   }}
 
-  // Scored exercises: enable check button. Practice: show continue.
-  const ex = state.exercises[state.currentEx];
-  if (ex && ex.correct) {{
-    setButton('check');
-  }} else {{
-    setButton('continue');
-  }}
+  // Enable check button
+  setButton('check');
 }}
 
 function renderDialogueRead(container, dialogue) {{
@@ -1342,7 +1329,7 @@ function setButton(mode, disabled) {{
 
   // Show "Previous" link during flashcard exercises if not on first exercise
   const ex = state.exercises[state.currentEx];
-  const isFlashcard = ex && (ex.type === 'flashcard' || ex.type === 'flashcard_phrase' || ex.type === 'dialogue_read' || ex.type === 'fill_practice');
+  const isFlashcard = ex && (ex.type === 'flashcard' || ex.type === 'flashcard_phrase' || ex.type === 'dialogue_read');
   if (prevLink) {{
     if (isFlashcard && state.currentEx > 0) {{
       prevLink.style.display = 'block';
@@ -1386,7 +1373,7 @@ function handleCheck() {{
     case 'mc_bo_en':
     case 'mc_en_bo':
     case 'mc_bo_def':
-    case 'fill_practice':
+    case 'fill_blank':
       correct = state.selectedAnswer === ex.correct;
       break;
     default:
