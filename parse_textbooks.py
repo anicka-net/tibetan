@@ -238,6 +238,34 @@ TEXT_CORRECTIONS = [
     ('ཁོམ།', 'ཁྲོམ།'),               # market
     # སར → སྐར (subjoined ཀ lost)
     ('སར་མ', 'སྐར་མ'),               # minute
+    # གོང → གྲོང (subjoined ར lost) — only safe in place-name compounds,
+    # NOT blanket (གོང = above/before/price)
+    ('གོང་ཁྱེར', 'གྲོང་ཁྱེར'),       # city (~5)
+    ('གོང་གསེབ', 'གྲོང་གསེབ'),       # village (~3)
+    ('གོང་གསྱེབ', 'གྲོང་གསེབ'),     # village (doubly broken: missing ར + spurious ྱ)
+    ('གོང་ཁེར', 'གྲོང་ཁྱེར'),       # city (doubly broken: missing ར in གྲོང + ྱ in ཁྱེར)
+    ('གོང་སིག', 'གྲོང་སིག'),         # village/settlement
+    ('གོང་བསིགས', 'གྲོང་བསིགས'),     # settled village
+    ('གོང་པའི', 'གྲོང་པའི'),         # villager's
+    # ཁོ་ག → ཁྱོ་ག (subjoined ཡ lost) — boundary-matched to avoid corrupting
+    # ཁོ་གཉིས "the two of them" (ཁོ = he + གཉིས = two)
+    ('ཁོ་ག་', 'ཁྱོ་ག་'),             # husband + tsheg
+    ('ཁོ་ག།', 'ཁྱོ་ག།'),             # husband + shad
+    ('ཁོ་ག\n', 'ཁྱོ་ག\n'),           # husband + newline (standalone vocab entry)
+    ('ཁོ་ག ', 'ཁྱོ་ག '),             # husband + space
+    ('ཁོ་གར', 'ཁྱོ་གར'),             # husband + la-don particle
+    ('ཁོ་གའི', 'ཁྱོ་གའི'),           # husband + genitive
+    ('ཁོ་གས', 'ཁྱོ་གས'),             # husband + agentive
+    # Also add missing NEW syllable corrections found via V2 comparison
+    # དགས → དྲགས (subjoined ར lost)
+    ('་དགས་', '་དྲགས་'),             # too much (tsheg-bounded)
+    ('་དགས།', '་དྲགས།'),
+    # སོལ → སྲོལ (subjoined ར lost) — NOT blanket (སོལ = person name སོལ་མ)
+    ('ལུགས་སོལ', 'ལུགས་སྲོལ'),       # tradition/custom
+    # བམས → བྱམས (subjoined ཡ lost) — safe, no word བམས
+    ('བམས', 'བྱམས'),                 # love/compassion
+    # ཕིར → ཕྱིར (subjoined ཡ lost) — ཕ never takes prefix, blanket safe
+    ('ཕིར', 'ཕྱིར'),                 # back/for the sake of
 ]
 
 
@@ -854,6 +882,8 @@ def parse_book(text, level, use_sub=True):
         if particle_count:
             print(f"    Generated {particle_count} particle answers for {level}/{lesson_num}.{sub_num}")
         corpus_count = apply_fill_answers(fill_blanks)
+        infer_missing_word_banks(fill_blanks)
+        normalize_fill_blanks(fill_blanks)
         phrases = extract_common_phrases(lines)
         dialogue = extract_dialogue(lines)
         proverb = extract_proverb(lines)
@@ -917,8 +947,124 @@ def apply_fill_answers(fill_blanks):
         sent = fb.get('sentence', '')
         if sent in FILL_ANSWERS:
             fb['answer'] = FILL_ANSWERS[sent]
+            _align_fill_answer_with_word_bank(fb)
             applied += 1
     return applied
+
+
+def _normalize_fill_text(text):
+    """Normalize fill-in words for comparison against OCR-corrected word banks."""
+    if not text:
+        return ''
+    normalized = fix_ocr_errors(text)
+    normalized = re.sub(r'\s+', ' ', normalized)
+    return normalized.strip().rstrip('།་ ')
+
+
+def _align_fill_answer_with_word_bank(fill_blank):
+    """Rewrite the stored answer to match the visible word-bank option exactly."""
+    word_bank = fill_blank.get('word_bank')
+    answer = fill_blank.get('answer')
+    if not word_bank or not answer:
+        return
+
+    normalized_answer = _normalize_fill_text(answer)
+    if not normalized_answer:
+        return
+
+    for option in word_bank:
+        clean_option = option.strip().rstrip('།་ ')
+        if clean_option == answer:
+            fill_blank['answer'] = clean_option
+            return
+        if _normalize_fill_text(option) == normalized_answer:
+            fill_blank['answer'] = clean_option
+            return
+
+
+def infer_missing_word_banks(fill_blanks):
+    """Recover shared word banks for contiguous solved blanks missing their bank."""
+    pending = []
+
+    def flush_group():
+        if len(pending) < 2:
+            pending.clear()
+            return
+
+        answers = []
+        seen = set()
+        for idx in pending:
+            raw_answer = fill_blanks[idx].get('answer')
+            norm_answer = _normalize_fill_text(raw_answer)
+            if not norm_answer or norm_answer in seen:
+                pending.clear()
+                return
+            seen.add(norm_answer)
+            answers.append(raw_answer.strip().rstrip('།་ '))
+
+        for idx in pending:
+            fill_blanks[idx]['word_bank'] = answers[:]
+            _align_fill_answer_with_word_bank(fill_blanks[idx])
+        pending.clear()
+
+    for idx, fill_blank in enumerate(fill_blanks):
+        if fill_blank.get('word_bank'):
+            flush_group()
+            continue
+        if fill_blank.get('answer'):
+            pending.append(idx)
+        else:
+            flush_group()
+
+    flush_group()
+
+
+def normalize_fill_blanks(fill_blanks):
+    """Normalize shared word banks after answers have been generated/applied."""
+    groups = {}
+    for idx, fill_blank in enumerate(fill_blanks):
+        word_bank = fill_blank.get('word_bank')
+        if not word_bank:
+            continue
+        groups.setdefault(tuple(word_bank), []).append(idx)
+
+    for indices in groups.values():
+        shared_bank = fill_blanks[indices[0]].get('word_bank') or []
+        normalized_answers = {
+            _normalize_fill_text(fill_blanks[idx].get('answer'))
+            for idx in indices
+            if fill_blanks[idx].get('answer')
+        }
+
+        rewritten_bank = []
+        for option in shared_bank:
+            clean_option = option.strip().rstrip('།་ ')
+            parts = [part for part in re.split(r'\s+', clean_option) if part]
+            option_norm = _normalize_fill_text(clean_option)
+            part_norms = [_normalize_fill_text(part) for part in parts]
+
+            should_split = (
+                len(parts) > 1 and
+                option_norm not in normalized_answers and
+                any(part_norm in normalized_answers for part_norm in part_norms)
+            )
+
+            if should_split:
+                rewritten_bank.extend(parts)
+            else:
+                rewritten_bank.append(clean_option)
+
+        deduped_bank = []
+        seen = set()
+        for option in rewritten_bank:
+            key = _normalize_fill_text(option)
+            if key and key not in seen:
+                deduped_bank.append(option)
+                seen.add(key)
+
+        for idx in indices:
+            fill_blanks[idx]['word_bank'] = deduped_bank[:]
+            _align_fill_answer_with_word_bank(fill_blanks[idx])
 
 
 # === Vocab cleanup: fix wrong word boundaries and filter sentence fragments ===
@@ -944,6 +1090,65 @@ VOCAB_TERM_FIXES = {
 _COPULA_ENDINGS = ['་རེད', '་ཡོད', '་འདུག', '་ཡིན', '་སོང', '་ཡོང',
                    '་བྱུང', '་ཤག', '་མ་སོང']
 
+def _word_roots(bo):
+    """Extract searchable root forms from a vocab term like 'མིང་། / མཚན།'."""
+    roots = []
+    for part in bo.replace('/', '།').split('།'):
+        part = part.strip().rstrip('་')
+        if len(part) >= 2:  # Tibetan roots can be 1 syllable (2+ bytes)
+            roots.append(part)
+            # Also add sub-roots for compound terms: "སློན་ཤློར་བ" → "སློན་ཤློར"
+            syllables = part.split('་')
+            if len(syllables) >= 3:
+                roots.append('་'.join(syllables[:2]))
+    return roots
+
+
+def _defBo_is_relevant(bo, defBo):
+    """Check if defBo is a real example sentence for the word, not junk."""
+    if not defBo:
+        return False
+
+    # Reject: common phrases section header leaked in
+    if 'རྒྱུན་' in defBo and 'སྐད་ཆ' in defBo:
+        return False
+
+    # Reject: starts with broken OCR (vowel sign without base consonant)
+    if defBo and ord(defBo[0]) in range(0x0F71, 0x0F7F):
+        return False
+
+    roots = _word_roots(bo)
+
+    # Any word root found in the definition → likely relevant
+    for root in roots:
+        if root in defBo:
+            return True
+        # OCR often inserts spaces or drops subjoined letters — try fuzzy match
+        # by checking individual syllables (at least 2 of 3+ must match)
+        syls = root.split('་')
+        if len(syls) >= 2:
+            matches = sum(1 for s in syls if s and s in defBo)
+            if matches >= 2:
+                return True
+
+    # No root found — only keep if defBo is a real sentence (not a word list).
+    # OCR-mangled words may not match their own examples, so we allow them
+    # if the defBo genuinely looks like a sentence using the word in context.
+    if len(defBo) > 40:
+        # Reject word-list pattern: starts with a short bare term (another vocab word)
+        first_seg = defBo.split('།')[0].strip()
+        if len(first_seg) < 15 and '་' in first_seg:
+            # Looks like "otherWord། sentence about otherWord..." — not about our word
+            return False
+        # Check it looks like a sentence (has verb endings or particles)
+        sentence_markers = ['རེད', 'ཡིན', 'འདུག', 'ཡོད', 'བྱེད', 'སོང', 'ཤག',
+                           'དགོས', 'ཐུབ', 'གི་', 'ཀྱི་', 'པའི', 'བའི']
+        if any(m in defBo for m in sentence_markers):
+            return True
+
+    return False
+
+
 def clean_vocab(vocab_list):
     """Clean up vocab terms: fix boundaries, strip trailing tshegs, filter junk."""
     cleaned = []
@@ -953,7 +1158,13 @@ def clean_vocab(vocab_list):
         # Apply specific term fixes
         if term in VOCAB_TERM_FIXES:
             v['bo'] = VOCAB_TERM_FIXES[term]
+            if not _defBo_is_relevant(v['bo'], v.get('defBo', '')):
+                v['defBo'] = ''
             cleaned.append(v)
+            continue
+
+        # Drop items with doubled vowel signs (OCR artifact, not valid Tibetan)
+        if re.search(r'([\u0F71-\u0F7E])\1', term):
             continue
 
         # Strip trailing tsheg (but not shad ། which is a valid terminator)
@@ -977,8 +1188,27 @@ def clean_vocab(vocab_list):
             if is_sentence:
                 continue
 
+        # Validate defBo: clear if it's not a real example sentence
+        if not _defBo_is_relevant(v['bo'], v.get('defBo', '')):
+            v['defBo'] = ''
+
         cleaned.append(v)
     return cleaned
+
+
+def translate_phrases(phrase_list):
+    """Convert extracted phrase strings into app-ready objects."""
+    translated = []
+    for phrase in phrase_list:
+        if isinstance(phrase, dict):
+            bo = phrase.get('bo', '')
+            en = phrase.get('en', '')
+        else:
+            bo = phrase
+            en = _lookup_translation(phrase) or ''
+        if bo:
+            translated.append({'bo': bo, 'en': en})
+    return translated
 
 
 def translate_vocab(vocab_list):
@@ -1048,6 +1278,7 @@ def main():
             l['topicEn'] = translate_topic(l['topicBo'])
             l['vocab'] = clean_vocab(l['vocab'])
             l['vocab'] = translate_vocab(l['vocab'])
+            l['phrases'] = translate_phrases(l['phrases'])
         all_lessons.extend(lessons)
 
     # Parse A2 (Book-1 has lessons 1-6, Book-2 has lessons 7-13)
@@ -1059,6 +1290,7 @@ def main():
             l['topicEn'] = translate_topic(l['topicBo'])
             l['vocab'] = clean_vocab(l['vocab'])
             l['vocab'] = translate_vocab(l['vocab'])
+            l['phrases'] = translate_phrases(l['phrases'])
         all_lessons.extend(lessons)
 
     # Parse B1-Book-1
@@ -1069,6 +1301,7 @@ def main():
         l['topicEn'] = translate_topic(l['topicBo'])
         l['vocab'] = clean_vocab(l['vocab'])
         l['vocab'] = translate_vocab(l['vocab'])
+        l['phrases'] = translate_phrases(l['phrases'])
     all_lessons.extend(b1_1_lessons)
 
     # Parse B1-Book-2
@@ -1079,6 +1312,7 @@ def main():
         l['topicEn'] = translate_topic(l['topicBo'])
         l['vocab'] = clean_vocab(l['vocab'])
         l['vocab'] = translate_vocab(l['vocab'])
+        l['phrases'] = translate_phrases(l['phrases'])
     all_lessons.extend(b1_2_lessons)
 
     # Stats

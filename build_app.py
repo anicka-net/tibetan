@@ -763,6 +763,13 @@ function loadProgress() {{
   catch {{ return {{}}; }}
 }}
 
+function getLocalDayKey(date = new Date()) {{
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${{year}}-${{month}}-${{day}}`;
+}}
+
 function saveProgress(key, value) {{
   const data = loadProgress();
   data[key] = value;
@@ -780,18 +787,22 @@ function isLessonCompleted(lesson) {{
 
 function getStreak() {{
   const data = loadProgress();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDayKey();
   if (data.lastDay === today) return data.streak || 0;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = getLocalDayKey(yesterdayDate);
   if (data.lastDay === yesterday) return data.streak || 0;
   return 0;
 }}
 
 function updateStreak() {{
   const data = loadProgress();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalDayKey();
   if (data.lastDay === today) return;
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = getLocalDayKey(yesterdayDate);
   data.streak = (data.lastDay === yesterday) ? (data.streak || 0) + 1 : 1;
   data.lastDay = today;
   localStorage.setItem('tibetan_progress', JSON.stringify(data));
@@ -1044,13 +1055,21 @@ function generateExercises(lesson) {{
   }}
 
   // 4. Phrase flashcards (only include phrases that have English translations)
-  const phrasesWithEn = phrases.filter(p => typeof p === 'object' && p.en);
-  for (const p of shuffle(phrasesWithEn).slice(0, 6)) {{
+  const phraseCards = phrases
+    .map(p => typeof p === 'string' ? {{ bo: p, en: '' }} : p)
+    .filter(p => p && p.bo);
+  for (const p of shuffle(phraseCards).slice(0, 6)) {{
     exercises.push({{ type: 'flashcard_phrase', data: p }});
   }}
 
   // 5. Fill-in-blank from textbook
-  const validBlanks = fillBlanks.filter(fb => fb.sentence && fb.sentence.includes('_') && fb.answer);
+  const validBlanks = fillBlanks.filter(fb =>
+    fb.sentence &&
+    fb.sentence.includes('_') &&
+    fb.answer &&
+    Array.isArray(fb.word_bank) &&
+    fb.word_bank.length > 0
+  );
   const selectedBlanks = shuffle(validBlanks).slice(0, 5);
   for (const fb of selectedBlanks) {{
     exercises.push({{ type: 'fill_blank', data: fb }});
