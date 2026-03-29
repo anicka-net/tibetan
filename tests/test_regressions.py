@@ -72,17 +72,24 @@ class LookupRegressionTests(unittest.TestCase):
 
 
 class BuildTemplateRegressionTests(unittest.TestCase):
-    def test_vocab_flashcards_remain_capped(self):
-        pattern = r"flashcardVocab = shuffle\(vocab\.filter\(v => v\.en\)\)\.slice\(0, 8\);"
-        self.assertRegex(BUILD_APP_SOURCE, pattern)
+    def test_vocab_flashcards_show_all_words(self):
+        """User feedback: learner must see ALL vocab before quizzes.
+        Capping at 8 meant she got tested on words she hadn't seen yet."""
+        self.assertIn("flashcardVocab = shuffle(vocab.filter(v => v.en));", BUILD_APP_SOURCE)
+        self.assertNotIn(".slice(0, 8)", BUILD_APP_SOURCE.split("flashcardVocab")[1].split(";")[0])
 
-    def test_phrase_flashcards_do_not_require_english(self):
-        self.assertIn(".filter(p => p && p.bo);", BUILD_APP_SOURCE)
-        self.assertNotIn(".filter(p => p && p.bo && p.en);", BUILD_APP_SOURCE)
+    def test_phrase_flashcards_require_english(self):
+        """User reported 'Practice reading this phrase!' as a bug —
+        phrases without English translation are not useful for learners."""
+        self.assertIn(".filter(p => p && p.bo && p.en);", BUILD_APP_SOURCE)
 
     def test_fill_blank_exercises_still_require_renderable_word_banks(self):
         self.assertIn("Array.isArray(fb.word_bank)", BUILD_APP_SOURCE)
         self.assertIn("fb.word_bank.length > 0", BUILD_APP_SOURCE)
+
+    def test_fill_blank_exercises_skip_multi_blank(self):
+        """User found exercises with 2 blanks where only 1 could be filled."""
+        self.assertIn("(fb.sentence.match(/_+/g) || []).length === 1", BUILD_APP_SOURCE)
 
 
 if __name__ == "__main__":
