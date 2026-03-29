@@ -994,8 +994,8 @@ function generateExercises(lesson) {{
   // Vocab with Tibetan definitions
   const vocabWithDef = vocab.filter(v => v.defBo);
 
-  // 1. Vocab flashcards — show ALL translated vocab first so learner sees every word
-  const flashcardVocab = shuffle(vocab.filter(v => v.en));
+  // 1. Vocab flashcards (max 8) — keep lessons from ballooning before graded exercises
+  const flashcardVocab = shuffle(vocab.filter(v => v.en)).slice(0, 8);
   for (const v of flashcardVocab) {{
     exercises.push({{ type: 'flashcard', data: v }});
   }}
@@ -1054,10 +1054,10 @@ function generateExercises(lesson) {{
     }}
   }}
 
-  // 4. Phrase flashcards (only include phrases that have English translations)
+  // 4. Phrase flashcards
   const phraseCards = phrases
     .map(p => typeof p === 'string' ? {{ bo: p, en: '' }} : p)
-    .filter(p => p && p.bo && p.en);
+    .filter(p => p && p.bo);
   for (const p of shuffle(phraseCards).slice(0, 6)) {{
     exercises.push({{ type: 'flashcard_phrase', data: p }});
   }}
@@ -1068,7 +1068,9 @@ function generateExercises(lesson) {{
     fb.sentence.includes('_') &&
     fb.answer &&
     Array.isArray(fb.word_bank) &&
-    fb.word_bank.length > 0
+    fb.word_bank.length > 0 &&
+    // Skip exercises with multiple separate blanks (UI supports only one)
+    (fb.sentence.match(/_+/g) || []).length === 1
   );
   const selectedBlanks = shuffle(validBlanks).slice(0, 5);
   for (const fb of selectedBlanks) {{

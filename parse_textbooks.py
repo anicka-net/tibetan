@@ -148,6 +148,12 @@ TEXT_CORRECTIONS = [
     ('ཁོན', 'ཁྱོན'),                   # altogether (~24)
     ('ཁད', 'ཁྱད'),                     # difference/special (~18)
     ('ཁིམ', 'ཁྱིམ'),                   # home/household (~12)
+    ('ཉལ་ཁི', 'ཉལ་ཁྲི'),             # bed/cot (specific: must run before dog rule)
+    ('་ཁི་', '་ཁྱི་'),                 # dog (boundary-matched to avoid hitting ཁིམ/ཁིམས)
+    ('་ཁི།', '་ཁྱི།'),
+    ('་ཁི\n', '་ཁྱི\n'),
+    (' ཁི།', ' ཁྱི།'),               # dog after shad+space in word banks
+    (' ཁི\n', ' ཁྱི\n'),
     ('ཁེལ', 'ཁྲེལ'),                   # shame (~8)
     ('ཁིམས', 'ཁྲིམས'),               # law (~3)
     # མཁེན starts with prefix མ — safe (no larger syllable contains it)
@@ -256,6 +262,8 @@ TEXT_CORRECTIONS = [
     ('ཁོ་གར', 'ཁྱོ་གར'),             # husband + la-don particle
     ('ཁོ་གའི', 'ཁྱོ་གའི'),           # husband + genitive
     ('ཁོ་གས', 'ཁྱོ་གས'),             # husband + agentive
+    # རྐུབ་བཀག → རྐུབ་བཀྱག (sat down; བཀག alone = blocked, not blanket-safe)
+    ('རྐུབ་བཀག', 'རྐུབ་བཀྱག'),
     # Also add missing NEW syllable corrections found via V2 comparison
     # དགས → དྲགས (subjoined ར lost)
     ('་དགས་', '་དྲགས་'),             # too much (tsheg-bounded)
@@ -273,11 +281,11 @@ def fix_ocr_errors(text):
     """Apply known OCR error corrections to extracted textbook text."""
     for wrong, right in TEXT_CORRECTIONS:
         text = text.replace(wrong, right)
-    # Remove spurious subjoined མ (U+0FA8) before vowel signs.
-    # Legitimate སྨ/རྨ stacks are followed by consonants (སྨན, རྨོང), while
-    # spurious ྨ appears before vowel signs (པྨོ→པོ, གཏྨོང→གཏོང).
-    # Also preserve Sanskrit stacks like པདྨ where ྨ precedes tsheg/consonant.
-    text = re.sub(r'([^\u0F62\u0F66])\u0FA8([\u0F71-\u0F7E])', r'\1\2', text)
+    # Remove spurious subjoined མ (U+0FA8) before vowel signs, but only for the
+    # invalid lead stacks observed in OCR output (པྨོ, གཏྨོང, ཡྨོད, etc.).
+    # Do not blanket-remove after every consonant: valid forms like པདྨོ must
+    # survive intact.
+    text = re.sub(r'([ཁགངཇཉཏཔབམཟའཡལཨ])\u0FA8([\u0F71-\u0F7E])', r'\1\2', text)
     return text
 
 def split_lessons(text, level_marker):
@@ -926,6 +934,10 @@ def _load_translations():
     return data.get('topics', {}), data.get('vocab', {})
 
 TOPIC_TRANSLATIONS, VOCAB_TRANSLATIONS = _load_translations()
+NORMALIZED_VOCAB_TRANSLATIONS = {
+    fix_ocr_errors(key.rstrip('།').rstrip('་').strip()): value
+    for key, value in VOCAB_TRANSLATIONS.items()
+}
 
 
 # ===== FILL-IN ANSWERS =====
@@ -941,6 +953,10 @@ def _load_fill_answers():
         return json.load(f)
 
 FILL_ANSWERS = _load_fill_answers()
+NORMALIZED_FILL_ANSWERS = {
+    fix_ocr_errors(sentence): answer
+    for sentence, answer in FILL_ANSWERS.items()
+}
 
 
 def apply_fill_answers(fill_blanks):
@@ -950,8 +966,11 @@ def apply_fill_answers(fill_blanks):
         if fb.get('answer'):
             continue  # already has an answer (e.g. from particle solver)
         sent = fb.get('sentence', '')
-        if sent in FILL_ANSWERS:
-            fb['answer'] = FILL_ANSWERS[sent]
+        answer = FILL_ANSWERS.get(sent)
+        if not answer:
+            answer = NORMALIZED_FILL_ANSWERS.get(fix_ocr_errors(sent))
+        if answer:
+            fb['answer'] = answer
             _align_fill_answer_with_word_bank(fb)
             applied += 1
     return applied
@@ -1241,6 +1260,9 @@ def _lookup_translation(word):
         return VOCAB_TRANSLATIONS[clean + '།']
     if clean + '་' in VOCAB_TRANSLATIONS:
         return VOCAB_TRANSLATIONS[clean + '་']
+    normalized = fix_ocr_errors(clean)
+    if normalized in NORMALIZED_VOCAB_TRANSLATIONS:
+        return NORMALIZED_VOCAB_TRANSLATIONS[normalized]
     # Try substring match (word is contained in a dict key or vice versa)
     for bo, en in VOCAB_TRANSLATIONS.items():
         bo_clean = bo.rstrip('།').rstrip('་').strip()
