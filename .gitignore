@@ -8,6 +8,10 @@ index.html
 # Old distributable file (replaced by CLAUDE.md)
 CLAUDE.md.distributable
 
+# Dharma practice texts (moved to private repo)
+hevajra/
+tara/
+
 # Editor/OS
 *.swp
 *~

@@ -273,6 +273,11 @@ def fix_ocr_errors(text):
     """Apply known OCR error corrections to extracted textbook text."""
     for wrong, right in TEXT_CORRECTIONS:
         text = text.replace(wrong, right)
+    # Remove spurious subjoined མ (U+0FA8) before vowel signs.
+    # Legitimate སྨ/རྨ stacks are followed by consonants (སྨན, རྨོང), while
+    # spurious ྨ appears before vowel signs (པྨོ→པོ, གཏྨོང→གཏོང).
+    # Also preserve Sanskrit stacks like པདྨ where ྨ precedes tsheg/consonant.
+    text = re.sub(r'([^\u0F62\u0F66])\u0FA8([\u0F71-\u0F7E])', r'\1\2', text)
     return text
 
 def split_lessons(text, level_marker):
@@ -419,7 +424,7 @@ def extract_fill_blanks(lines):
     for i, line in enumerate(lines):
         stripped = line.strip()
 
-        if 'བར་སྟོང' in stripped or ('ཁ་བསང' in stripped or 'ཁ་སྐོང' in stripped or 'ཁ་བསྐང' in stripped):
+        if 'བར་སྟོང' in stripped or 'བར་སོང' in stripped or ('ཁ་བསང' in stripped or 'ཁ་སྐོང' in stripped or 'ཁ་བསྐང' in stripped):
             in_section = True
             word_bank = None
             pending_particles = []
@@ -592,7 +597,7 @@ PARTICLE_SETS = {
 # Known particles by type (for detecting particle word banks)
 KNOWN_PARTICLES = {
     'genitive': {'གི', 'གྱི', 'ཀྱི', 'འི', 'ཡི'},
-    'agentive': {'གིས', 'གྱིས', 'ཀྱིས', 'ས', 'ཡིས', 'ཡྱིས', 'པྨོས', 'སུས'},
+    'agentive': {'གིས', 'གྱིས', 'ཀྱིས', 'ས', 'ཡིས', 'ཡྱིས', 'པོས', 'པྨོས', 'སུས'},
     'locative': {'དུ', 'ཏུ', 'སུ', 'རུ', 'ར', 'ན'},
 }
 

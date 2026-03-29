@@ -994,8 +994,8 @@ function generateExercises(lesson) {{
   // Vocab with Tibetan definitions
   const vocabWithDef = vocab.filter(v => v.defBo);
 
-  // 1. Vocab flashcards (max 8) — skip items with no English translation (garbled OCR)
-  const flashcardVocab = shuffle(vocab.filter(v => v.en)).slice(0, 8);
+  // 1. Vocab flashcards — show ALL translated vocab first so learner sees every word
+  const flashcardVocab = shuffle(vocab.filter(v => v.en));
   for (const v of flashcardVocab) {{
     exercises.push({{ type: 'flashcard', data: v }});
   }}
@@ -1057,7 +1057,7 @@ function generateExercises(lesson) {{
   // 4. Phrase flashcards (only include phrases that have English translations)
   const phraseCards = phrases
     .map(p => typeof p === 'string' ? {{ bo: p, en: '' }} : p)
-    .filter(p => p && p.bo);
+    .filter(p => p && p.bo && p.en);
   for (const p of shuffle(phraseCards).slice(0, 6)) {{
     exercises.push({{ type: 'flashcard_phrase', data: p }});
   }}
